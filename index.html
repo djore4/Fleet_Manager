@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise v17</title>
+    <title>Gestão de Viaturas</title>
     
     <script>
         window.onerror = function(msg, url, line) {
@@ -42,9 +42,9 @@
         .section.active { display: block; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; border:1px solid #eee; }
         .form-row { margin-bottom: 12px; }
-        label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; height:45px; font-size:15px; }
-        button.btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; height:45px; font-size:15px; }
+        .label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px; }
+        .input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; height:45px; font-size:15px; }
+        .button.btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; height:45px; font-size:15px; }
         .btn-save { background: var(--primary); }
         .item-card { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .badge { display:inline-block; padding:3px 8px; border-radius:10px; font-size:0.7rem; color:white; margin-top:4px; font-weight:bold; }
@@ -112,4 +112,183 @@
 <script>
     // --- CHAVES (JÁ PREENCHIDAS) ---
     const supabaseUrl = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
+
+    // --- SEGURANÇA DE INICIALIZAÇÃO ---
+    let supabase = null;
+
+    function initSupabase() {
+        if (typeof supabase !== 'undefined' && supabase !== null) return true;
+        if (typeof window.supabase === 'undefined') {
+            alert("ERRO: A biblioteca do Supabase não carregou. Verifica a tua internet ou AdBlock.");
+            return false;
+        }
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            return true;
+        } catch (e) {
+            alert("ERRO ao iniciar Supabase: " + e.message);
+            return false;
+        }
+    }
+
+    // --- LÓGICA ---
+    let fleet = [], people = [], bookings = [];
+    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14' };
+
+    function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+
+    async function init() {
+        if (!initSupabase()) return;
+
+        try {
+            const [f, p, b] = await Promise.all([
+                supabase.from('fleet').select('*'),
+                supabase.from('people').select('*'),
+                supabase.from('bookings').select('*')
+            ]);
+            
+            if(f.error) throw f.error; if(p.error) throw p.error; if(b.error) throw b.error;
+
+            fleet = f.data || [];
+            people = p.data || [];
+            bookings = b.data || [];
+            
+            updateSelects(); 
+            renderList();
+            showLoader(false);
+
+        } catch (e) { 
+            showLoader(false);
+            alert("Erro de Sincronização: " + e.message); 
+        }
+    }
+
+    function login() {
+        const u = document.getElementById('u').value;
+        const p = document.getElementById('p').value;
+        
+        // Simples validação visual para o utilizador saber que clicou
+        const btn = document.getElementById('btn-login');
+        btn.innerText = "A entrar...";
+        
+        setTimeout(() => {
+            if(u === 'admin' && p === '123') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                showLoader(true);
+                init(); // Tenta ligar à base de dados
+            } else { 
+                alert("Senha errada!"); 
+                btn.innerText = "ENTRAR";
+            }
+        }, 100);
+    }
+
+    function nav(id) {
+        document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(e => e.classList.remove('active'));
+        document.getElementById('tab-'+id).classList.add('active');
+        document.getElementById('btn-'+id).classList.add('active');
+    }
+
+    function updateSelects() {
+        const sCar = document.getElementById('inp_car');
+        const sDriver = document.getElementById('inp_driver');
+        sCar.innerHTML = ''; sDriver.innerHTML = '';
+        
+        if(fleet.length === 0) sCar.innerHTML = '<option>-- Cria Carros na Config --</option>';
+        else fleet.forEach(c => sCar.add(new Option(c.name + ' (' + c.plate + ')', c.id)));
+        
+        if(people.length === 0) sDriver.innerHTML = '<option>-- Cria Pessoas na Config --</option>';
+        else people.forEach(p => sDriver.add(new Option(p.name, p.id)));
+    }
+
+    async function saveBooking() {
+        if (!initSupabase()) return;
+        const rec = {
+            vehicle_id: document.getElementById('inp_car').value,
+            user_id: document.getElementById('inp_driver').value,
+            type: document.getElementById('inp_type').value,
+            start_time: document.getElementById('inp_start').value,
+            end_time: document.getElementById('inp_end').value,
+            location: document.getElementById('inp_loc').value,
+            user_name: 'System'
+        };
+        
+        if(!rec.start_time || document.getElementById('inp_car').value.includes('--')) return alert("Preenche tudo!");
+        
+        showLoader(true);
+        const { error } = await supabase.from('bookings').insert(rec);
+        if(error) { showLoader(false); alert("Erro: " + error.message); }
+        else { alert("Sucesso!"); await init(); nav('list'); }
+    }
+
+    function renderList() {
+        const div = document.getElementById('list_container');
+        if(bookings.length === 0) { div.innerHTML = "Sem agendamentos."; div.style.display='flex'; div.style.justifyContent='center'; return; }
+        div.style.display='block';
+        
+        bookings.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
+        let html = '';
+        bookings.forEach(b => {
+            const car = fleet.find(f => f.id == b.vehicle_id) || {name:'?', plate:'?'};
+            const person = people.find(p => p.id == b.user_id) || {name:'?'};
+            const date = new Date(b.start_time).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+            
+            html += `<div class="item-card">
+                <div>
+                    <strong>${car.plate}</strong> <span style="color:#666; font-size:0.9rem">(${b.location})</span><br>
+                    <span style="font-size:0.9rem">👤 ${person.name}</span><br>
+                    <span style="font-size:0.85rem; color:#888;">📅 ${date}</span> 
+                    <span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span>
+                </div>
+                <button style="color:red;border:none;background:none;font-weight:bold;padding:10px;" onclick="delBooking(${b.id})">✕</button>
+            </div>`;
+        });
+        div.innerHTML = html;
+    }
+
+    async function delBooking(id) {
+        if(!initSupabase()) return;
+        if(confirm("Apagar?")) { 
+            showLoader(true);
+            await supabase.from('bookings').delete().eq('id', id); 
+            await init(); 
+        }
+    }
+
+    async function addFleet() {
+        if(!initSupabase()) return;
+        const name = document.getElementById('new_car_name').value;
+        const plate = document.getElementById('new_car_plate').value.toUpperCase();
+        if(name && plate) { 
+            showLoader(true);
+            await supabase.from('fleet').insert({name, plate, location:'Gaia'}); 
+            alert("Viatura criada!"); 
+            document.getElementById('new_car_name').value=''; document.getElementById('new_car_plate').value='';
+            await init(); 
+        } else { alert("Faltam dados"); }
+    }
+
+    async function addPerson() {
+        if(!initSupabase()) return;
+        const name = document.getElementById('new_person_name').value;
+        const role = document.getElementById('new_person_role').value;
+        if(name) { 
+            showLoader(true);
+            await supabase.from('people').insert({name, role, location:'Gaia'}); 
+            alert("Pessoa criada!"); 
+            document.getElementById('new_person_name').value='';
+            await init(); 
+        } else { alert("Falta o nome"); }
+    }
+
+    const now = new Date();
+    const future = new Date(); future.setHours(future.getHours() + 2);
+    const toLocal = (d) => { const offset = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - offset).toISOString().slice(0, 16); }
+    document.getElementById('inp_start').value = toLocal(now);
+    document.getElementById('inp_end').value = toLocal(future);
+</script>
+</body>
+</html>
