@@ -3,127 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetWise v19 - Diagnóstico</title>
-    
+    <title>FleetWise v20</title>
+
+    <script>
+        window.onerror = function(msg, url, line) {
+            var bar = document.getElementById('status-bar');
+            if(bar) {
+                bar.style.backgroundColor = 'red';
+                bar.innerHTML = "⚠️ ERRO NA LINHA " + line + ": " + msg;
+                bar.style.display = 'block';
+            }
+            return false;
+        };
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body { margin: 0; font-family: sans-serif; background: #f4f4f4; }
+        body { margin: 0; font-family: sans-serif; background: #eee; }
+        #status-bar { background: #333; color: white; padding: 10px; text-align: center; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; display:none;}
         
-        /* BARRA DE DIAGNÓSTICO (O SEMÁFORO) */
-        #status-bar {
-            background-color: #dc3545; /* Começa Vermelho */
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 9999;
-        }
-
-        /* LOGIN */
-        #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; padding-top: 50px; }
-        .box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #333; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 1.1rem; border-radius: 4px; }
-        button:hover { background: #000; }
+        #login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #017E84; }
+        .box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing:border-box; }
+        button { width: 100%; padding: 12px; background: #333; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
         
-        /* APP (Escondida) */
-        #app-content { display: none; padding: 20px; text-align: center; margin-top: 60px; }
+        #app-content { display: none; padding: 20px; }
+        .success-box { background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 50px; }
     </style>
 </head>
 <body>
 
-<div id="status-bar">🔴 SISTEMA DESLIGADO (Se vires isto, o código partiu)</div>
+<div id="status-bar">A iniciar...</div>
 
 <div id="login-screen">
     <div class="box">
-        <h2>FleetWise v19</h2>
+        <h2>FleetWise v20</h2>
         <input type="text" id="u" value="admin">
         <input type="password" id="p" value="123">
-        <button onclick="tentarEntrar()">ENTRAR</button>
-        <p id="msg" style="margin-top:15px; color:#666;">Aguarde pela barra verde...</p>
+        <button id="btn-entrar">ENTRAR</button>
     </div>
 </div>
 
 <div id="app-content">
-    <h1>🎉 SUCESSO!</h1>
-    <p>O login funcionou e a base de dados respondeu.</p>
-    <div style="background:white; padding:20px; border-radius:8px;">
-        <h3>Dados na Base de Dados:</h3>
-        <p>Viaturas: <span id="count-cars">...</span></p>
-        <p>Pessoas: <span id="count-people">...</span></p>
+    <div class="success-box">
+        <h1 style="color:green; margin:0;">LOGIN SUCESSO!</h1>
+        <p>A ligação à base de dados funciona.</p>
+        <p>Viaturas encontradas: <b id="num-cars">...</b></p>
     </div>
 </div>
 
 <script>
-    // --- ZONA DE SEGURANÇA ---
-    // Se houver um erro, a barra fica vermelha e mostra o erro
-    window.onerror = function(msg, url, line) {
-        const bar = document.getElementById('status-bar');
-        bar.style.backgroundColor = 'red';
-        bar.innerText = "❌ ERRO CRÍTICO NA LINHA " + line + ": " + msg;
-        return false;
-    };
+    // Configuração
+    const SUPABASE_URL = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
 
-    // --- CONFIGURAÇÃO ---
-    const supabaseUrl = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
-    
-    let supabase = null;
-
-    // --- INICIALIZAÇÃO ---
-    // 1. Verificar se o Supabase carregou
-    if (typeof window.supabase === 'undefined') {
-        throw new Error("A biblioteca Supabase não carregou. Verifica a internet.");
+    // Verificar se o botão existe antes de usar
+    const btn = document.getElementById('btn-entrar');
+    if (btn) {
+        btn.addEventListener('click', tentarLogin);
     }
 
-    // 2. Iniciar Cliente
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    // 3. SE CHEGÁMOS AQUI, TUDO ESTÁ BEM!
-    // Mudar semáforo para VERDE
-    const bar = document.getElementById('status-bar');
-    bar.style.backgroundColor = '#28a745';
-    bar.innerText = "🟢 SISTEMA ONLINE (Podes fazer Login)";
-
-    // --- FUNÇÃO DO BOTÃO ---
-    async function tentarEntrar() {
-        const btn = document.querySelector('button');
-        const msg = document.getElementById('msg');
-        
-        btn.innerText = "A verificar...";
-        msg.innerText = "A contactar a Cloud...";
-
+    async function tentarLogin() {
         const u = document.getElementById('u').value;
         const p = document.getElementById('p').value;
+        const status = document.getElementById('status-bar');
 
         if (u === 'admin' && p === '123') {
+            status.style.display = 'block';
+            status.style.backgroundColor = 'orange';
+            status.innerText = "⏳ A ligar à Cloud...";
+
             try {
-                // Testar conexão real
-                const { count, error } = await supabase.from('fleet').select('*', { count: 'exact', head: true });
+                if (typeof supabase === 'undefined') throw new Error("Supabase não carregou");
+                
+                const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Teste Real
+                const { count, error } = await client.from('fleet').select('*', { count: 'exact', head: true });
                 
                 if (error) throw error;
 
                 // Sucesso
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                document.getElementById('count-cars').innerText = count + " viaturas encontradas.";
-                document.getElementById('count-people').innerText = "Ligação OK.";
-                
-                bar.innerText = "🟢 LOGIN EFETUADO COM SUCESSO";
+                document.getElementById('num-cars').innerText = count;
+                status.style.display = 'none'; // Esconde barra
 
             } catch (err) {
-                alert("Erro ao ligar à Cloud: " + err.message);
-                msg.innerText = "Erro: " + err.message;
-                btn.innerText = "TENTAR NOVAMENTE";
+                status.style.backgroundColor = 'red';
+                status.innerText = "ERRO NA CLOUD: " + err.message;
             }
         } else {
-            alert("Senha errada!");
-            btn.innerText = "ENTRAR";
+            alert("Senha errada");
         }
     }
 </script>
