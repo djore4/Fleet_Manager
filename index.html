@@ -4,16 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestão de Viaturas</title>
-    
-    <script>
-        window.onerror = function(msg, url, line) {
-            alert("ERRO DE SISTEMA:\n" + msg + "\nLinha: " + line);
-            return false;
-        };
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
     <style>
         :root { --primary: #017E84; --bg: #F9FAFB; --text: #212529; --white: #ffffff; --border: #DEE2E6; }
         body { margin: 0; background-color: var(--bg); color: var(--text); font-family: sans-serif; padding-bottom: 80px; }
@@ -25,8 +17,7 @@
         .login-box h2 { margin-top:0; color:#017E84; }
         .login-box input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size:16px; }
         .login-box button { width: 100%; background: #333; color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size:16px; }
-        .login-box button:active { transform: scale(0.98); background: #000; }
-
+        
         /* LOADER */
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index: 6000; display:none; justify-content:center; align-items:center; flex-direction:column; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #017E84; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -42,9 +33,9 @@
         .section.active { display: block; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; border:1px solid #eee; }
         .form-row { margin-bottom: 12px; }
-        .label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px; }
-        .input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; height:45px; font-size:15px; }
-        .button.btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; height:45px; font-size:15px; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; height:45px; font-size:15px; }
+        button.btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; height:45px; font-size:15px; }
         .btn-save { background: var(--primary); }
         .item-card { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .badge { display:inline-block; padding:3px 8px; border-radius:10px; font-size:0.7rem; color:white; margin-top:4px; font-weight:bold; }
@@ -56,17 +47,17 @@
 
 <div id="login-screen">
     <div class="login-box">
-        <h2>FleetWise v17</h2>
+        <h2>Gestão de Viaturas</h2>
         <input type="text" id="u" placeholder="Utilizador" value="admin">
         <input type="password" id="p" placeholder="Senha" value="123">
-        <button id="btn-login" onclick="login()">ENTRAR</button>
-        <p style="font-size:0.8rem; color:#888; margin-top:15px;">Sistema Blindado v17</p>
+        <button onclick="fazerLogin()">ENTRAR</button>
+        <p style="font-size:0.8rem; color:#888; margin-top:15px;">Sistema Cloud v18</p>
     </div>
 </div>
 
 <div id="app-content">
     <header>
-        <span>FleetWise</span>
+        <span>Gestão de Viaturas</span>
         <span style="font-size:0.8rem; cursor:pointer;" onclick="location.reload()">Sair ↪</span>
     </header>
     
@@ -110,79 +101,63 @@
 </div>
 
 <script>
-    // --- CHAVES (JÁ PREENCHIDAS) ---
+    // --- 2. CONFIGURAÇÃO (Já preenchida) ---
     const supabaseUrl = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
 
-    // --- SEGURANÇA DE INICIALIZAÇÃO ---
-    let supabase = null;
-
-    function initSupabase() {
-        if (typeof supabase !== 'undefined' && supabase !== null) return true;
-        if (typeof window.supabase === 'undefined') {
-            alert("ERRO: A biblioteca do Supabase não carregou. Verifica a tua internet ou AdBlock.");
-            return false;
-        }
-        try {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            return true;
-        } catch (e) {
-            alert("ERRO ao iniciar Supabase: " + e.message);
-            return false;
-        }
+    // Inicializar cliente de forma simples
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("Supabase iniciado!");
+    } catch (e) {
+        alert("Erro grave ao iniciar Supabase: " + e.message);
     }
 
-    // --- LÓGICA ---
+    // Variáveis Globais
     let fleet = [], people = [], bookings = [];
     const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14' };
 
-    function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+    // --- 3. FUNÇÕES ---
 
-    async function init() {
-        if (!initSupabase()) return;
-
-        try {
-            const [f, p, b] = await Promise.all([
-                supabase.from('fleet').select('*'),
-                supabase.from('people').select('*'),
-                supabase.from('bookings').select('*')
-            ]);
-            
-            if(f.error) throw f.error; if(p.error) throw p.error; if(b.error) throw b.error;
-
-            fleet = f.data || [];
-            people = p.data || [];
-            bookings = b.data || [];
-            
-            updateSelects(); 
-            renderList();
-            showLoader(false);
-
-        } catch (e) { 
-            showLoader(false);
-            alert("Erro de Sincronização: " + e.message); 
-        }
+    function showLoader(show) { 
+        document.getElementById('loader').style.display = show ? 'flex' : 'none'; 
     }
 
-    function login() {
+    // Função de Login (Mudei o nome para 'fazerLogin' para evitar conflitos)
+    function fazerLogin() {
         const u = document.getElementById('u').value;
         const p = document.getElementById('p').value;
         
-        // Simples validação visual para o utilizador saber que clicou
-        const btn = document.getElementById('btn-login');
-        btn.innerText = "A entrar...";
-        
-        setTimeout(() => {
-            if(u === 'admin' && p === '123') {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                showLoader(true);
-                init(); // Tenta ligar à base de dados
-            } else { 
-                alert("Senha errada!"); 
-                btn.innerText = "ENTRAR";
-            }
-        }, 100);
+        if(u === 'admin' && p === '123') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            showLoader(true);
+            carregarDados();
+        } else {
+            alert("Senha errada!");
+        }
+    }
+
+    async function carregarDados() {
+        try {
+            // Carregar tudo
+            const { data: f } = await supabase.from('fleet').select('*');
+            const { data: p } = await supabase.from('people').select('*');
+            const { data: b } = await supabase.from('bookings').select('*');
+
+            fleet = f || [];
+            people = p || [];
+            bookings = b || [];
+
+            updateSelects();
+            renderList();
+            showLoader(false);
+
+        } catch (error) {
+            showLoader(false);
+            alert("Erro de ligação: " + error.message);
+        }
     }
 
     function nav(id) {
@@ -197,15 +172,14 @@
         const sDriver = document.getElementById('inp_driver');
         sCar.innerHTML = ''; sDriver.innerHTML = '';
         
-        if(fleet.length === 0) sCar.innerHTML = '<option>-- Cria Carros na Config --</option>';
+        if(fleet.length === 0) sCar.innerHTML = '<option>-- Cria carros na Config --</option>';
         else fleet.forEach(c => sCar.add(new Option(c.name + ' (' + c.plate + ')', c.id)));
         
-        if(people.length === 0) sDriver.innerHTML = '<option>-- Cria Pessoas na Config --</option>';
+        if(people.length === 0) sDriver.innerHTML = '<option>-- Cria pessoas na Config --</option>';
         else people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
     async function saveBooking() {
-        if (!initSupabase()) return;
         const rec = {
             vehicle_id: document.getElementById('inp_car').value,
             user_id: document.getElementById('inp_driver').value,
@@ -221,7 +195,7 @@
         showLoader(true);
         const { error } = await supabase.from('bookings').insert(rec);
         if(error) { showLoader(false); alert("Erro: " + error.message); }
-        else { alert("Sucesso!"); await init(); nav('list'); }
+        else { alert("Sucesso!"); await carregarDados(); nav('list'); }
     }
 
     function renderList() {
@@ -250,16 +224,14 @@
     }
 
     async function delBooking(id) {
-        if(!initSupabase()) return;
         if(confirm("Apagar?")) { 
             showLoader(true);
             await supabase.from('bookings').delete().eq('id', id); 
-            await init(); 
+            await carregarDados(); 
         }
     }
 
     async function addFleet() {
-        if(!initSupabase()) return;
         const name = document.getElementById('new_car_name').value;
         const plate = document.getElementById('new_car_plate').value.toUpperCase();
         if(name && plate) { 
@@ -267,12 +239,11 @@
             await supabase.from('fleet').insert({name, plate, location:'Gaia'}); 
             alert("Viatura criada!"); 
             document.getElementById('new_car_name').value=''; document.getElementById('new_car_plate').value='';
-            await init(); 
+            await carregarDados(); 
         } else { alert("Faltam dados"); }
     }
 
     async function addPerson() {
-        if(!initSupabase()) return;
         const name = document.getElementById('new_person_name').value;
         const role = document.getElementById('new_person_role').value;
         if(name) { 
@@ -280,10 +251,11 @@
             await supabase.from('people').insert({name, role, location:'Gaia'}); 
             alert("Pessoa criada!"); 
             document.getElementById('new_person_name').value='';
-            await init(); 
+            await carregarDados(); 
         } else { alert("Falta o nome"); }
     }
 
+    // Datas default
     const now = new Date();
     const future = new Date(); future.setHours(future.getHours() + 2);
     const toLocal = (d) => { const offset = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - offset).toISOString().slice(0, 16); }
