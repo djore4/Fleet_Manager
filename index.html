@@ -2,62 +2,68 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Cloud v21</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetWise v22 (Baseada na v20)</title>
+
+    <script>
+        window.onerror = function(msg, url, line) {
+            var bar = document.getElementById('status-bar');
+            if(bar) {
+                bar.style.backgroundColor = 'red';
+                bar.innerHTML = "⚠️ ERRO CRÍTICO NA LINHA " + line + ": " + msg;
+                bar.style.display = 'block';
+            }
+            // Tenta desbloquear o ecrã em caso de erro
+            document.getElementById('loader').style.display = 'none';
+            return false;
+        };
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --primary: #017E84; --bg: #F9FAFB; --text: #212529; --white: #ffffff; --border: #DEE2E6; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: sans-serif; padding-bottom: 80px; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: sans-serif; background: #f4f4f4; padding-bottom: 80px; }
+        * { box-sizing: border-box; }
+
+        /* Barra de Erros */
+        #status-bar { background: #333; color: white; padding: 10px; text-align: center; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; display:none;}
         
-        /* LOGIN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .login-box h2 { margin-top:0; color:#017E84; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size:16px; }
-        .login-box button { width: 100%; background: #333; color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size:16px; }
-        
-        /* LOADER (Escondido por defeito) */
+        /* Loader */
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index: 6000; display:none; justify-content:center; align-items:center; flex-direction:column; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #017E84; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* APP */
+        /* Login */
+        #login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #017E84; position:fixed; top:0; left:0; width:100%; z-index:5000; }
+        .box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing:border-box; height:45px; }
+        button { width: 100%; padding: 12px; background: #333; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        
+        /* App */
         #app-content { display: none; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 50; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header { background: #017E84; color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 50; display:flex; justify-content:space-between; align-items:center; }
         nav { display: flex; justify-content: center; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 54px; z-index: 40; }
-        nav button { flex: 1; padding: 12px; border: none; background: transparent; border-bottom: 3px solid transparent; font-weight: bold; color: #666; cursor: pointer; font-size:14px; }
-        nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f9fa; }
-        
+        nav button { flex: 1; padding: 12px; border: none; background: transparent; border-bottom: 3px solid transparent; font-weight: bold; color: #666; cursor: pointer; }
+        nav button.active { color: #017E84; border-bottom-color: #017E84; background: #f0f9fa; }
+
         .section { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
-        .section.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-        
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; border:1px solid #eee; }
-        .form-row { margin-bottom: 12px; }
-        label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; height:45px; font-size:15px; }
-        button.btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; height:45px; font-size:15px; }
-        .btn-save { background: var(--primary); }
-        
-        /* LISTAS */
-        .item-card { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .badge { display:inline-block; padding:4px 8px; border-radius:4px; font-size:0.7rem; color:white; margin-top:5px; font-weight:bold; }
+        .section.active { display: block; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .item-card { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
+<div id="status-bar">A iniciar...</div>
 <div id="loader"><div class="spinner"></div><p style="margin-top:15px;color:#666;">A carregar...</p></div>
 
 <div id="login-screen">
-    <div class="login-box">
-        <h2>FleetWise v21</h2>
+    <div class="box">
+        <h2>FleetWise v22</h2>
         <input type="text" id="u" value="admin">
         <input type="password" id="p" value="123">
-        <button id="btn-login" onclick="fazerLogin()">ENTRAR</button>
-        <p style="font-size:0.8rem; color:#999; margin-top:15px;">Versão de Produção</p>
+        <button id="btn-entrar">ENTRAR</button>
     </div>
 </div>
 
@@ -75,85 +81,96 @@
 
     <div id="tab-dash" class="section active">
         <div class="card">
-            <h3 style="margin-top:0">Novo Agendamento</h3>
-            <div class="form-row"><label>Viatura</label><select id="inp_car"></select></div>
-            <div class="form-row"><label>Condutor</label><select id="inp_driver"></select></div>
-            <div class="form-row"><label>Tipo</label><select id="inp_type"><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select></div>
-            <div class="form-row"><label>Início</label><input type="datetime-local" id="inp_start"></div>
-            <div class="form-row"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
-            <div class="form-row"><label>Local</label><select id="inp_loc"><option>Gaia</option><option>Porto</option></select></div>
-            <button class="btn btn-save" onclick="saveBooking()">AGENDAR</button>
+            <h3>Novo Agendamento</h3>
+            <label>Viatura</label><select id="inp_car"></select>
+            <label>Pessoa</label><select id="inp_driver"></select>
+            <label>Tipo</label><select id="inp_type"><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select>
+            <label>Início</label><input type="datetime-local" id="inp_start">
+            <label>Fim</label><input type="datetime-local" id="inp_end">
+            <label>Local</label><select id="inp_loc"><option>Gaia</option><option>Porto</option></select>
+            <button onclick="saveBooking()" style="background:#017E84; margin-top:10px;">AGENDAR</button>
         </div>
     </div>
 
     <div id="tab-list" class="section">
-        <div class="card">
-            <input type="text" id="search" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="margin-bottom:15px;">
-            <div id="list_container">A carregar...</div>
-        </div>
+        <div class="card" id="list_container">Sem agendamentos.</div>
     </div>
 
     <div id="tab-conf" class="section">
         <div class="card">
-            <h3 style="margin-top:0">Adicionar Viatura</h3>
-            <div class="form-row"><input id="new_car_name" placeholder="Modelo (Ex: Megane)"></div>
-            <div class="form-row"><input id="new_car_plate" placeholder="Matrícula (Ex: AA-00-BB)"></div>
-            <button class="btn btn-save" onclick="addFleet()">Gravar Carro</button>
+            <h3>Adicionar Viatura</h3>
+            <input id="new_car_name" placeholder="Modelo (Ex: Megane)">
+            <input id="new_car_plate" placeholder="Matrícula">
+            <button onclick="addFleet()" style="background:#017E84;">Gravar Carro</button>
         </div>
         <div class="card">
-            <h3 style="margin-top:0">Adicionar Pessoa</h3>
-            <div class="form-row"><input id="new_person_name" placeholder="Nome (Ex: João Silva)"></div>
-            <div class="form-row"><input id="new_person_role" placeholder="Cargo (Ex: Comercial)"></div>
-            <button class="btn btn-save" onclick="addPerson()">Gravar Pessoa</button>
+            <h3>Adicionar Pessoa</h3>
+            <input id="new_person_name" placeholder="Nome">
+            <input id="new_person_role" placeholder="Cargo">
+            <button onclick="addPerson()" style="background:#017E84;">Gravar Pessoa</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURAÇÃO (CHAVES INCLUÍDAS) ---
+    // --- ZONA PROTEGIDA ---
     const SUPABASE_URL = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
 
-    // --- 2. VARIÁVEIS GLOBAIS ---
+    // Variáveis
     let supabase = null;
     let fleet = [], people = [], bookings = [];
-    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14' };
 
-    // --- 3. UI HELPERS ---
+    // Ligar o Botão de Login de forma SEGURA (como na v20)
+    window.onload = function() {
+        const btn = document.getElementById('btn-entrar');
+        if(btn) {
+            btn.addEventListener('click', tentarLogin);
+        } else {
+            alert("Erro fatal: Botão não encontrado");
+        }
+        // Configurar datas
+        const now = new Date();
+        const future = new Date(); future.setHours(future.getHours() + 2);
+        const toLocal = (d) => { const offset = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - offset).toISOString().slice(0, 16); }
+        document.getElementById('inp_start').value = toLocal(now);
+        document.getElementById('inp_end').value = toLocal(future);
+    };
+
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
-    
-    function fazerLogin() {
+
+    async function tentarLogin() {
         const u = document.getElementById('u').value;
         const p = document.getElementById('p').value;
+        const status = document.getElementById('status-bar');
 
         if (u === 'admin' && p === '123') {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            startApp();
+            try {
+                showLoader(true);
+                // Iniciar Supabase
+                if (typeof window.supabase === 'undefined') throw new Error("Supabase não carregou");
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Carregar Dados
+                await refreshData();
+
+                // Sucesso
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                showLoader(false);
+
+            } catch (err) {
+                showLoader(false);
+                status.style.display = 'block';
+                status.style.backgroundColor = 'red';
+                status.innerText = "ERRO: " + err.message;
+            }
         } else {
-            alert("Senha errada!");
-        }
-    }
-
-    async function startApp() {
-        showLoader(true);
-        try {
-            // Iniciar Supabase
-            if(typeof window.supabase === 'undefined') throw new Error("Supabase não carregou.");
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            // Carregar Dados
-            await refreshData();
-            showLoader(false);
-
-        } catch (err) {
-            showLoader(false);
-            alert("Erro ao iniciar: " + err.message);
+            alert("Senha errada");
         }
     }
 
     async function refreshData() {
-        // Carregar as 3 tabelas ao mesmo tempo
         const [f, p, b] = await Promise.all([
             supabase.from('fleet').select('*'),
             supabase.from('people').select('*'),
@@ -172,7 +189,6 @@
         renderList();
     }
 
-    // --- 4. FUNÇÕES DE NAVEGAÇÃO ---
     function nav(id) {
         document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(e => e.classList.remove('active'));
@@ -185,14 +201,13 @@
         const sDriver = document.getElementById('inp_driver');
         sCar.innerHTML = ''; sDriver.innerHTML = '';
         
-        if(fleet.length === 0) sCar.innerHTML = '<option>-- Vai a Config criar carros --</option>';
+        if(fleet.length === 0) sCar.innerHTML = '<option>-- Vai a Config --</option>';
         else fleet.forEach(c => sCar.add(new Option(c.name + ' (' + c.plate + ')', c.id)));
         
-        if(people.length === 0) sDriver.innerHTML = '<option>-- Vai a Config criar pessoas --</option>';
+        if(people.length === 0) sDriver.innerHTML = '<option>-- Vai a Config --</option>';
         else people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
-    // --- 5. AÇÕES (Gravar/Apagar) ---
     async function saveBooking() {
         const rec = {
             vehicle_id: document.getElementById('inp_car').value,
@@ -204,49 +219,37 @@
             user_name: 'System'
         };
         
-        if(!rec.start_time || document.getElementById('inp_car').value.includes('--')) return alert("Dados inválidos ou incompletos.");
+        if(!rec.start_time || document.getElementById('inp_car').value.includes('--')) return alert("Preenche tudo!");
         
         showLoader(true);
         const { error } = await supabase.from('bookings').insert(rec);
-        
         if(error) { showLoader(false); alert("Erro: " + error.message); }
         else { alert("Agendado!"); await refreshData(); nav('list'); showLoader(false); }
     }
 
     function renderList() {
         const div = document.getElementById('list_container');
-        const search = document.getElementById('search').value.toLowerCase();
-        
         if(bookings.length === 0) { div.innerHTML = "Sem agendamentos."; return; }
-
-        // Filtrar
-        const filtered = bookings.filter(b => {
-            const car = fleet.find(f => f.id == b.vehicle_id);
-            const person = people.find(p => p.id == b.user_id);
-            if(!car || !person) return false;
-            return car.plate.toLowerCase().includes(search) || person.name.toLowerCase().includes(search);
-        });
-
+        
         // Ordenar
-        filtered.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
+        bookings.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
 
         let html = '';
-        filtered.forEach(b => {
+        bookings.forEach(b => {
             const car = fleet.find(f => f.id == b.vehicle_id) || {name:'?', plate:'?'};
             const person = people.find(p => p.id == b.user_id) || {name:'?'};
             const date = new Date(b.start_time).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
             
             html += `<div class="item-card">
                 <div>
-                    <strong>${car.plate}</strong> <span style="font-size:0.9rem; color:#666">(${b.location})</span><br>
+                    <strong>${car.plate}</strong> <span style="font-size:0.9rem">(${b.location})</span><br>
                     <span style="font-size:0.9rem">👤 ${person.name}</span><br>
                     <span style="font-size:0.85rem; color:#888;">📅 ${date}</span> 
-                    <span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span>
                 </div>
                 <button style="color:red;border:none;background:none;font-weight:bold;padding:10px;" onclick="delBooking(${b.id})">✕</button>
             </div>`;
         });
-        div.innerHTML = html || "Nada encontrado.";
+        div.innerHTML = html;
     }
 
     async function delBooking(id) {
@@ -281,15 +284,8 @@
             document.getElementById('new_person_name').value='';
             await refreshData();
             showLoader(false);
-        } else { alert("Preenche o nome"); }
+        } else { alert("Preenche tudo"); }
     }
-
-    // Datas iniciais
-    const now = new Date();
-    const future = new Date(); future.setHours(future.getHours() + 2);
-    const toLocal = (d) => { const offset = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - offset).toISOString().slice(0, 16); }
-    document.getElementById('inp_start').value = toLocal(now);
-    document.getElementById('inp_end').value = toLocal(future);
 </script>
 
 </body>
