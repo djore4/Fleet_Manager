@@ -3,113 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetWise v23 - Emergência</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>FleetWise v24 - Teste Local</title>
     <style>
-        /* DESIGN ORIGINAL */
-        :root { --primary: #017E84; --bg: #F9FAFB; --text: #212529; --white: #ffffff; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: sans-serif; }
-        
-        /* CAIXA DE DEBUG (Para vermos o erro se ele existir) */
-        #debug-console {
-            background: #000; color: #0f0; padding: 10px; font-family: monospace;
-            position: fixed; bottom: 0; width: 100%; height: 100px; overflow-y: scroll;
-            z-index: 9999; border-top: 2px solid #333; font-size: 12px;
-        }
-
-        /* LOGIN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        button { width: 100%; padding: 12px; background: #333; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
-        
-        /* APP */
-        #app-content { display: none; padding: 20px; text-align: center; margin-top:50px;}
-        h1 { color: var(--primary); }
+        body { background: #017E84; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: white; }
+        .box { background: white; padding: 30px; border-radius: 8px; text-align: center; width: 90%; max-width: 350px; color: #333; }
+        h2 { color: #017E84; margin-top: 0; }
+        button { width: 100%; padding: 15px; background: #333; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 1.2rem; margin-top: 20px; }
+        button:active { background: red; }
+        #status { margin-top: 15px; font-weight: bold; color: red; }
     </style>
 </head>
 <body>
 
-<div id="debug-console">A iniciar sistema...</div>
-
-<div id="login-screen">
     <div class="box">
-        <h2>FleetWise v23</h2>
-        <input type="text" id="u" value="admin">
-        <input type="password" id="p" value="123">
-        <button onclick="testeInicial()">ENTRAR</button>
-    </div>
-</div>
-
-<div id="app-content">
-    <h1>✅ LIGADO!</h1>
-    <p>O sistema entrou com sucesso.</p>
-    <p>Viaturas: <b id="count">...</b></p>
-    <button onclick="location.reload()" style="background:red; margin-top:20px;">SAIR</button>
-</div>
-
-<script>
-    // Função para escrever na caixa preta em baixo
-    function log(msg) {
-        const d = document.getElementById('debug-console');
-        d.innerHTML += "<br>> " + msg;
-        d.scrollTop = d.scrollHeight;
-    }
-
-    // 1. Teste de Arranque
-    log("Javascript carregado.");
-    
-    // 2. Configuração Supabase
-    const SUPABASE_URL = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
-    
-    let supabase = null;
-
-    try {
-        if(typeof window.supabase === 'undefined') {
-            log("❌ ERRO CRÍTICO: Supabase não carregou. Bloqueio de rede?");
-        } else {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            log("✅ Motor Supabase pronto.");
-        }
-    } catch(e) {
-        log("❌ ERRO NO CÓDIGO: " + e.message);
-    }
-
-    // 3. Função do Botão
-    async function testeInicial() {
-        // Alerta visual imediato para provar que o botão funciona
-        // Se isto não aparecer, o navegador travou.
-        alert("O BOTÃO ESTÁ VIVO! A tentar ligar..."); 
+        <h2>Teste de Vida</h2>
+        <p>Se clicares no botão e aparecer um alerta, o teu telemóvel está bom.</p>
         
-        log("Botão clicado. A validar dados...");
-        const u = document.getElementById('u').value;
-        const p = document.getElementById('p').value;
+        <button onclick="teste()">CLICA-ME</button>
+        
+        <p id="status">À espera do clique...</p>
+    </div>
 
-        if (u === 'admin' && p === '123') {
-            log("Senha correta. A ligar à Cloud...");
-            try {
-                const { count, error } = await supabase.from('fleet').select('*', { count: 'exact', head: true });
-                
-                if (error) throw error;
-
-                log("✅ SUCESSO! Base de dados respondeu.");
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                document.getElementById('count').innerText = count;
-
-            } catch (err) {
-                log("❌ ERRO DE LIGAÇÃO: " + err.message);
-                alert("Erro técnico: " + err.message);
-            }
-        } else {
-            alert("Senha errada.");
-            log("Senha errada inserida.");
+    <script>
+        // Este código não depende de nada externo.
+        // Tem de funcionar até numa ilha deserta.
+        
+        function teste() {
+            // 1. Mudar o texto
+            document.getElementById('status').style.color = 'green';
+            document.getElementById('status').innerText = "VIVO! O JAVASCRIPT FUNCIONA.";
+            
+            // 2. Mostrar alerta
+            alert("SUCESSO! O problema não é do código, é do bloqueio de rede ao Supabase.");
         }
-    }
-</script>
+    </script>
 
 </body>
 </html>
