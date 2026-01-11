@@ -49,7 +49,6 @@
         /* LAYOUT */
         .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .view-section.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from {opacity:0; transform:translateY(5px);} to {opacity:1; transform:translateY(0);} }
         .card { background: var(--white); padding: 25px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
 
         /* FORMS */
@@ -175,7 +174,7 @@
                 
                 <div class="form-col" style="display:flex; align-items:flex-end; gap:10px;">
                     <button class="btn btn-save" id="btn_save" style="flex:1" onclick="saveBooking()">AGENDAR</button>
-                    <button class="btn btn-cancel hidden" id="btn_cancel" style="flex:1; margin-top:0;" onclick="resetForm()">CANCELAR / LIMPAR</button>
+                    <button class="btn btn-cancel hidden" id="btn_cancel" style="flex:1; margin-top:0;" onclick="resetForm()">CANCELAR</button>
                 </div>
             </div>
         </div>
@@ -428,22 +427,22 @@
         if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
-    // --- NOVA FUNÇÃO DE FORMATAÇÃO DE DATA ---
-    function formatForInput(isoDate) {
-        if (!isoDate) return '';
-        const d = new Date(isoDate);
-        if (isNaN(d.getTime())) return '';
-        // Ajuste para Timezone local para aparecer certo no input
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        return d.toISOString().slice(0, 16);
+    // --- NOVA FUNÇÃO DE DATA (CORREÇÃO) ---
+    function formatDateForInput(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return '';
+        // Ajuste manual de fuso horário para garantir que a hora local aparece
+        const offsetMs = date.getTimezoneOffset() * 60000;
+        const localISOTime = new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+        return localISOTime;
     }
 
     async function saveBooking() {
         const type = document.getElementById('inp_type').value;
         const start = document.getElementById('inp_start').value;
-        const end = document.getElementById('inp_end').value;
+        let end = document.getElementById('inp_end').value;
 
-        // FIM OBRIGATÓRIO (REVERTIDO)
         if(!end) return alert("Data de fim obrigatória.");
 
         const rec = {
@@ -498,8 +497,10 @@
 
     function editBooking(id) {
         if(currentUser.role === 'vendedor') return;
+        
+        // CORREÇÃO: Usar loose equality (==) para garantir que string ID e number ID coincidem
         const b = bookings.find(x => x.id == id);
-        if(!b) return;
+        if(!b) return console.error("Agendamento não encontrado:", id);
 
         if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Não pode editar de outro local.");
         
@@ -511,12 +512,12 @@
         nav('dash');
         document.getElementById('booking_id').value = b.id;
         document.getElementById('inp_vehicle').value = b.vehicleId;
-        document.getElementById('inp_user').value = b.userId;
+        document.getElementById('inp_driver').value = b.userId; // Corrigido para inp_driver
         document.getElementById('inp_type').value = b.type;
         
-        // USO DA NOVA FUNÇÃO DE DATA PARA NÃO FALHAR
-        document.getElementById('inp_start').value = formatForInput(b.start);
-        document.getElementById('inp_end').value = formatForInput(b.end);
+        // CORREÇÃO: Usar a nova função formatadora segura
+        document.getElementById('inp_start').value = formatDateForInput(b.start);
+        document.getElementById('inp_end').value = formatDateForInput(b.end);
         
         const cName = document.getElementById('inp_client_name'); if(cName) cName.value = b.clientName||'';
         const cPhone = document.getElementById('inp_client_phone'); if(cPhone) cPhone.value = b.clientPhone||'';
