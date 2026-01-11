@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v35</title>
+    <title>FleetWise Pro - v36</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            /* DESIGN ODOO STYLE */
             --primary: #017E84; --primary-dark: #015e63;
             --secondary: #00A09D;
             --bg: #F9FAFB; --text: #212529; --white: #ffffff;
             --border: #DEE2E6; --danger: #DC3545; --excel: #217346;
-            --gaia-color: #6f42c1; --porto-color: #007bff;
             --weekend: #F2F4F7; --now-line: #DC3545;
         }
 
@@ -33,36 +31,20 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
         .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* APP HEADER FIXO (WRAPPER) */
+        /* APP HEADER */
         #app-content { display: none; }
-        
-        /* Novo container para prender o cabeçalho e o menu juntos */
-        .sticky-header-group {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        header { 
-            background: var(--primary); color: var(--white); padding: 15px; 
-            display: flex; align-items: center; justify-content: center; position: relative;
-            /* Removemos position:sticky daqui porque agora é o pai que controla */
-        }
+        .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
         h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
         #user-display { position: absolute; right: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
 
         /* NAV */
-        nav { 
-            display: flex; justify-content: center; background: #fff; 
-            overflow-x: auto; border-bottom: 1px solid var(--border);
-            /* Removemos position:sticky daqui */
-        }
+        nav { display: flex; justify-content: center; background: #fff; overflow-x: auto; border-bottom: 1px solid var(--border); }
         nav button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
         nav button:hover { color: var(--primary); background-color: #f8f9fa; }
         nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #eef9f9;}
-        .restricted { display: none; }
+        .restricted { display: none; } /* Admin/Genius only */
+        .admin-only { display: none; } /* Admin only */
 
         /* LAYOUT */
         .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
@@ -86,10 +68,11 @@
         .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
 
         /* TIMELINE */
-        .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; }
-        .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f8f9fa; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; }
-        .loc-tab.active-gaia { background: #fff; color: var(--gaia-color); border-bottom-color: var(--gaia-color); }
-        .loc-tab.active-porto { background: #fff; color: var(--porto-color); border-bottom-color: var(--porto-color); }
+        .current-loc-display { 
+            text-align: center; font-weight: bold; color: var(--primary); 
+            background: #eef9f9; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #b2dfdb; 
+            text-transform: uppercase; letter-spacing: 1px;
+        }
 
         .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
@@ -105,23 +88,20 @@
         .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
-        /* LISTS & FILTROS */
+        /* LISTS */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); }
         .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         th { background: #f8f9fa; font-weight: 700; text-align: left; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
-        .loc-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; margin-right:5px; text-transform:uppercase; }
-        
-        /* CLIENT INFO NO FEED */
         .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
 
         @media (max-width: 768px) {
             .form-row { flex-direction: column; gap: 10px; }
             .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; }
             .filter-bar { flex-direction: column; }
-            nav { justify-content: flex-start; } /* Scroll menu no mobile */
+            nav { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -132,7 +112,7 @@
 <div id="login-screen">
     <div class="login-box">
         <h2>FleetWise</h2>
-        <p>Gestão de Viaturas - Cloud</p>
+        <p>Gestão de Viaturas</p>
         <input type="text" id="u" placeholder="Utilizador">
         <input type="password" id="p" placeholder="Senha">
         <button onclick="tentarLogin()">ENTRAR</button>
@@ -140,7 +120,6 @@
 </div>
 
 <div id="app-content">
-    
     <div class="sticky-header-group">
         <header>
             <h1>Gestão de Viaturas</h1>
@@ -153,14 +132,12 @@
             <button onclick="nav('fleet')" id="nav-fleet" class="restricted">🚗 Viaturas</button>
             <button onclick="nav('people')" id="nav-people" class="restricted">👥 Pessoas</button>
             <button onclick="nav('users')" id="nav-users" class="restricted">🔐 Equipa</button>
+            <button onclick="nav('locs')" id="nav-locs" class="admin-only">📍 Locais</button>
         </nav>
     </div>
 
     <section id="tab-dash" class="view-section active">
-        <div class="loc-tabs">
-            <button class="loc-tab active-gaia" id="btn-loc-gaia" onclick="changeLocation('Gaia')">📍 GAIA</button>
-            <button class="loc-tab" id="btn-loc-porto" onclick="changeLocation('Porto')">📍 PORTO</button>
-        </div>
+        <div class="current-loc-display">📍 <span id="lbl_current_loc">...</span></div>
 
         <div class="card" id="card-booking-form" style="border-top:none;">
             <input type="hidden" id="booking_id">
@@ -179,7 +156,7 @@
             </div>
 
             <div id="extra_fields">
-                <h4 class="client-header" style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px; color:var(--primary)">Dados do Cliente</h4>
+                <h4 style="margin:0 0 10px 0; color:var(--primary); border-bottom:1px solid #ddd; padding-bottom:5px;">Dados do Cliente</h4>
                 <div class="form-row">
                     <div class="form-col"><label>Nome Cliente</label><input id="inp_client_name"></div>
                     <div class="form-col"><label>Telefone</label><input type="tel" id="inp_client_phone"></div>
@@ -215,8 +192,7 @@
     <section id="tab-list" class="view-section">
         <div class="card">
             <div class="filter-bar">
-                <input type="text" id="filter_text" placeholder="🔍 Pesquisar por matricula, nome..." onkeyup="renderList()" style="flex:2; padding:10px; border:1px solid #ddd;">
-                <select id="filter_loc" onchange="renderList()" style="flex:1; height:40px;"><option value="">Todos</option><option>Gaia</option><option>Porto</option></select>
+                <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="flex:2; padding:10px; border:1px solid #ddd;">
                 <select id="filter_type" onchange="renderList()" style="flex:1; height:40px;"><option value="">Todos os Tipos</option><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select>
                 <button class="btn-excel" onclick="exportToExcel()">⬇ Excel</button>
             </div>
@@ -233,7 +209,8 @@
         <div class="card" style="border-left:5px solid var(--primary)">
             <h3>Viaturas</h3>
             <div class="form-row">
-                <input id="f_name" placeholder="Modelo"><input id="f_plate" placeholder="Matrícula"><select id="f_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                <input id="f_name" placeholder="Modelo"><input id="f_plate" placeholder="Matrícula">
+                <select id="f_loc"></select>
             </div>
             <button class="btn btn-save" onclick="saveFleet()">Adicionar Viatura</button>
             <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Modelo</th><th>Matrícula</th><th>Ações</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
@@ -244,7 +221,8 @@
         <div class="card" style="border-left:5px solid var(--secondary)">
             <h3>Pessoas</h3>
             <div class="form-row">
-                <input id="p_name" placeholder="Nome"><input id="p_role" placeholder="Cargo"><select id="p_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                <input id="p_name" placeholder="Nome"><input id="p_role" placeholder="Cargo">
+                <select id="p_loc"></select>
             </div>
             <button class="btn btn-save" style="background:var(--secondary)" onclick="savePeople()">Adicionar Pessoa</button>
             <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
@@ -255,11 +233,43 @@
         <div class="card" style="border-left:5px solid #FFC107">
             <h3>Equipa (Utilizadores)</h3>
             <div class="form-row">
-                <input id="new_u_name" placeholder="Username"><input id="new_u_pass" placeholder="Senha">
-                <select id="new_u_role"><option value="vendedor">Vendedor</option><option value="genius">Genius</option><option value="admin">Admin</option></select>
+                <div class="form-col"><label>Username</label><input id="new_u_name"></div>
+                <div class="form-col"><label>Senha</label><input id="new_u_pass"></div>
+                <div class="form-col"><label>Perfil</label>
+                    <select id="new_u_role">
+                        <option value="vendedor">Vendedor</option>
+                        <option value="genius">Genius</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
             </div>
             <button class="btn btn-save" style="background:#FFC107; color:black" onclick="addUser()">Criar Conta</button>
-            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
+            
+            <div style="margin-top:20px;">
+                <h4>Mudar Local de Utilizador Existente</h4>
+                <div class="form-row">
+                    <select id="edit_u_select"><option>Selecione Utilizador</option></select>
+                    <select id="edit_u_loc"></select>
+                    <button class="btn" style="background:#666" onclick="updateUserLocation()">Atualizar Local</button>
+                </div>
+            </div>
+
+            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
+        </div>
+    </section>
+
+    <section id="tab-locs" class="view-section">
+        <div class="card" style="border-left:5px solid #333">
+            <h3>Gestão de Locais (Pólos)</h3>
+            <p style="font-size:0.9rem; color:#666;">Adicione ou remova pólos da empresa. Isto afetará as opções de criação de utilizadores e viaturas.</p>
+            <div class="form-row">
+                <div class="form-col"><input id="new_loc_name" placeholder="Nome do Local (Ex: Lisboa)"></div>
+                <div class="form-col"><button class="btn btn-save" style="background:#333" onclick="addLocation()">Adicionar Local</button></div>
+            </div>
+            <div class="table-wrap">
+                <table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table>
+            </div>
         </div>
     </section>
 </div>
@@ -268,14 +278,16 @@
     // --- 1. CONFIGURAÇÃO ---
     let clientDB = null;
     let currentUser = null;
-    let fleet = [], people = [], bookings = [], appUsers = [];
+    let fleet = [], people = [], bookings = [], appUsers = [], allLocations = [];
     
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
     
     const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14', 'Indisponível':'#dc3545' };
-    const locColors = { 'Gaia':'#6f42c1', 'Porto':'#007bff' };
-    let activeLocation = 'Gaia', currentDate = new Date(), zoomLevel = 100;
+    
+    // O local ativo é definido pelo USER que faz login
+    let activeLocation = 'Gaia'; 
+    let currentDate = new Date(), zoomLevel = 100;
 
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
@@ -294,13 +306,15 @@
             if (error || !user) throw new Error("Dados incorretos.");
 
             currentUser = user;
+            // DEFINE O LOCAL ATIVO COM BASE NO PERFIL
+            activeLocation = user.location || 'Gaia'; 
+            
             await refreshData();
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            
-            const lbl = document.getElementById('user_label');
-            if(lbl) lbl.innerText = `${user.username} (${user.role})`;
+            document.getElementById('user_label').innerText = `${user.username} (${user.role})`;
+            document.getElementById('lbl_current_loc').innerText = activeLocation;
 
             aplicarPermissoes();
 
@@ -316,12 +330,14 @@
         const navFleet = document.getElementById('nav-fleet');
         const navPeople = document.getElementById('nav-people');
         const navUsers = document.getElementById('nav-users');
+        const navLocs = document.getElementById('nav-locs');
         const formBooking = document.getElementById('card-booking-form');
         const msgReadOnly = document.getElementById('msg-read-only');
 
         if(navFleet) navFleet.style.display = 'none';
         if(navPeople) navPeople.style.display = 'none';
         if(navUsers) navUsers.style.display = 'none';
+        if(navLocs) navLocs.style.display = 'none';
         if(formBooking) formBooking.style.display = 'block'; 
         if(msgReadOnly) msgReadOnly.style.display = 'none';
 
@@ -335,20 +351,23 @@
             if(navFleet) navFleet.style.display = 'block';
             if(navPeople) navPeople.style.display = 'block';
             if(navUsers) navUsers.style.display = 'block';
+            if(navLocs) navLocs.style.display = 'block';
         }
         nav('dash');
     }
 
     async function refreshData() {
-        const [f, p, b] = await Promise.all([
+        const [f, p, b, l] = await Promise.all([
             clientDB.from('fleet').select('*'),
             clientDB.from('people').select('*'),
-            clientDB.from('bookings').select('*')
+            clientDB.from('bookings').select('*'),
+            clientDB.from('locations').select('*')
         ]);
         
         if (f.error) throw f.error; fleet = f.data || [];
         if (p.error) throw p.error; people = p.data || [];
         if (b.error) throw b.error; bookings = b.data || [];
+        if (l.error) throw l.error; allLocations = l.data || [];
         
         bookings = bookings.map(x => ({
             id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
@@ -361,7 +380,8 @@
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
-        updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople();
+        populateLocationSelects();
+        updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList();
     }
 
     // --- 3. NAVEGAÇÃO ---
@@ -374,17 +394,21 @@
         if(id === 'dash') renderTimeline();
     }
 
-    function changeLocation(loc) { 
-        activeLocation = loc;
-        document.querySelectorAll('.loc-tab').forEach(e => e.classList.remove('active-gaia', 'active-porto'));
-        if(loc==='Gaia') document.getElementById('btn-loc-gaia').classList.add('active-gaia');
-        else document.getElementById('btn-loc-porto').classList.add('active-porto');
-        renderTimeline(); updateSelects();
+    function populateLocationSelects() {
+        const selects = ['f_loc', 'p_loc', 'new_u_loc', 'edit_u_loc'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.innerHTML = '';
+                allLocations.forEach(loc => el.add(new Option(loc.name, loc.name)));
+            }
+        });
     }
 
     function updateSelects() {
         const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '';
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '';
+        // Só mostra carros do local do utilizador
         if(sCar) fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
@@ -397,13 +421,13 @@
             type: document.getElementById('inp_type').value,
             start_time: document.getElementById('inp_start').value,
             end_time: document.getElementById('inp_end').value,
-            location: activeLocation,
+            location: activeLocation, // Força o local do user
             user_name: currentUser.username,
             client_name: document.getElementById('inp_client_name').value,
             client_phone: document.getElementById('inp_client_phone').value,
             client_nif: document.getElementById('inp_client_nif').value,
             client_addr: document.getElementById('inp_client_addr').value,
-            client_bi: document.getElementById('inp_client_bi').value // Campo BI que faltava
+            client_bi: document.getElementById('inp_client_bi').value
         };
         const id = document.getElementById('booking_id').value;
 
@@ -438,7 +462,10 @@
     function editBooking(id) {
         if(currentUser.role === 'vendedor') return;
         const b = bookings.find(x => x.id == id);
-        changeLocation(b.location); nav('dash');
+        // Só edita se for do mesmo local (segurança extra)
+        if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Não pode editar agendamentos de outro local.");
+        
+        nav('dash');
         document.getElementById('booking_id').value = b.id;
         document.getElementById('inp_vehicle').value = b.vehicleId;
         document.getElementById('inp_user').value = b.userId;
@@ -450,7 +477,7 @@
         const cPhone = document.getElementById('inp_client_phone'); if(cPhone) cPhone.value = b.clientPhone||'';
         const cNif = document.getElementById('inp_client_nif'); if(cNif) cNif.value = b.clientNif||'';
         const cAddr = document.getElementById('inp_client_addr'); if(cAddr) cAddr.value = b.clientAddr||'';
-        const cBi = document.getElementById('inp_client_bi'); if(cBi) cBi.value = b.clientBi||''; // Preenche BI
+        const cBi = document.getElementById('inp_client_bi'); if(cBi) cBi.value = b.clientBi||'';
         
         toggleExtraFields();
         document.getElementById('btn_save').innerText = "ATUALIZAR";
@@ -492,20 +519,22 @@
         });
     }
 
-    // --- LISTA (Com Filtros e Clientes e MORADA) ---
+    // --- LISTA ---
     function renderList() {
         const tb = document.getElementById('list_body'); if(!tb) return;
         tb.innerHTML = '';
         const filter = document.getElementById('filter_text').value.toLowerCase();
-        const filterLoc = document.getElementById('filter_loc').value;
         const filterType = document.getElementById('filter_type').value;
         
         bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
         bookings.forEach(b => {
+            // Filtrar por Local do Utilizador (exceto se Admin, que pode ver tudo, mas aqui simplificamos para ver o local ativo)
+            // Se quiseres que o Admin veja TUDO na lista, tira a condição b.location === activeLocation
+            if(b.location !== activeLocation && currentUser.role !== 'admin') return;
+
             const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
             const person = people.find(p => p.id == b.userId) || {name:'?'};
             
-            if(filterLoc && b.location !== filterLoc) return;
             if(filterType && b.type !== filterType) return;
             const txt = (car.plate + car.name + person.name + (b.clientName||'')).toLowerCase();
             if(!txt.includes(filter)) return;
@@ -514,18 +543,14 @@
             let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
             let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
 
-            // Dados do cliente no Feed COM MORADA
+            // CLIENT INFO COM MORADA
             let clientData = '';
             if(b.clientName) {
-                clientData = `<div class="client-info">
-                    <b>${b.clientName}</b><br>
-                    📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>
-                    🏠 ${b.clientAddr || 'Sem Morada'}
-                </div>`;
+                clientData = `<div class="client-info"><b>${b.clientName}</b><br>📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>🏠 ${b.clientAddr || 'Sem morada'}</div>`;
             }
 
             tb.innerHTML += `<tr>
-                <td><span class="loc-badge" style="background:${locColors[b.location] || '#999'}">${b.location}</span></td>
+                <td><b>${b.location}</b></td>
                 <td><b>${car.plate}</b><br><small>${car.name}</small></td>
                 <td>${person.name} ${clientData}</td>
                 <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
@@ -537,14 +562,61 @@
 
     async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    // --- CRUD ---
+    // --- CRUD VIATURAS/PESSOAS ---
     async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     async function savePeople() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
-    async function addUser() { const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value; if(u&&p){ showLoader(true); await clientDB.from('app_users').insert({username:u,password:p,role:r}); await refreshData(); showLoader(false); alert("User criado!"); } }
     
+    // --- GESTÃO USERS ---
+    async function addUser() { 
+        const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value, l=document.getElementById('new_u_loc').value; 
+        if(u&&p&&l){ showLoader(true); await clientDB.from('app_users').insert({username:u,password:p,role:r, location:l}); await refreshData(); showLoader(false); alert("User criado!"); } 
+    }
+    
+    async function updateUserLocation() {
+        const uid = document.getElementById('edit_u_select').value;
+        const loc = document.getElementById('edit_u_loc').value;
+        if(uid && loc) {
+            showLoader(true);
+            await clientDB.from('app_users').update({location:loc}).eq('id', uid);
+            await refreshData();
+            showLoader(false);
+            alert("Local atualizado!");
+        }
+    }
+
+    function renderUsersList() { 
+        const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u=>t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } 
+        
+        // Populate edit select
+        const sel = document.getElementById('edit_u_select');
+        if(sel) {
+            sel.innerHTML = '<option value="">Selecione Utilizador</option>';
+            appUsers.forEach(u => sel.add(new Option(u.username, u.id)));
+        }
+    }
+
+    // --- GESTÃO LOCAIS ---
+    async function addLocation() {
+        const name = document.getElementById('new_loc_name').value;
+        if(name) {
+            showLoader(true);
+            await clientDB.from('locations').insert({name:name});
+            await refreshData();
+            document.getElementById('new_loc_name').value='';
+            showLoader(false);
+        }
+    }
+    function renderLocsList() {
+        const t=document.getElementById('locs_list'); 
+        if(t) { 
+            t.innerHTML=''; 
+            allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); 
+        }
+    }
+
     function renderFleet() { const t=document.getElementById('fleet_body'); if(t) { t.innerHTML=''; fleet.forEach(c=>t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td style="text-align:right"><button onclick="delRec('fleet',${c.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
     function renderPeople() { const t=document.getElementById('people_body'); if(t) { t.innerHTML=''; people.forEach(p=>t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right"><button onclick="delRec('people',${p.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
-    function renderUsersList() { const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u=>t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td style="text-align:right"><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
+    
     async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
 
     // UTILS
