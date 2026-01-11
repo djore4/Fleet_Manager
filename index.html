@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v46</title>
+    <title>FleetWise Pro - v48</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -165,6 +165,7 @@
                 <div class="form-row">
                     <div class="form-col"><label>NIF</label><input id="inp_client_nif"></div>
                     <div class="form-col"><label>Morada</label><input id="inp_client_addr"></div>
+                    <div class="form-col"><label>CC/BI</label><input id="inp_client_bi"></div>
                 </div>
             </div>
 
@@ -427,41 +428,42 @@
         if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
-    // --- NOVA FUNÇÃO DE DATA (CORREÇÃO) ---
+    // --- NOVA FUNÇÃO DE DATA ---
     function formatDateForInput(isoString) {
         if (!isoString) return '';
         const date = new Date(isoString);
         if (isNaN(date.getTime())) return '';
-        // Ajuste manual de fuso horário para garantir que a hora local aparece
         const offsetMs = date.getTimezoneOffset() * 60000;
-        const localISOTime = new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-        return localISOTime;
+        return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
     }
 
     async function saveBooking() {
-        const type = document.getElementById('inp_type').value;
-        const start = document.getElementById('inp_start').value;
-        let end = document.getElementById('inp_end').value;
+        // Obter valores com verificação de segurança (evitar erro se elemento não existe)
+        const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+        
+        const type = getVal('inp_type');
+        const start = getVal('inp_start');
+        let end = getVal('inp_end');
 
         if(!end) return alert("Data de fim obrigatória.");
 
         const rec = {
-            vehicle_id: document.getElementById('inp_vehicle').value,
-            user_id: document.getElementById('inp_driver').value,
+            vehicle_id: getVal('inp_vehicle'),
+            user_id: getVal('inp_driver'),
             type: type,
             start_time: start,
             end_time: end,
             location: activeLocation, 
             user_name: currentUser.username,
-            client_name: document.getElementById('inp_client_name').value,
-            client_phone: document.getElementById('inp_client_phone').value,
-            client_nif: document.getElementById('inp_client_nif').value,
-            client_addr: document.getElementById('inp_client_addr').value,
-            client_bi: document.getElementById('inp_client_bi').value
+            client_name: getVal('inp_client_name'),
+            client_phone: getVal('inp_client_phone'),
+            client_nif: getVal('inp_client_nif'),
+            client_addr: getVal('inp_client_addr'),
+            client_bi: getVal('inp_client_bi')
         };
-        const id = document.getElementById('booking_id').value;
+        const id = getVal('booking_id');
 
-        if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha viatura e datas.");
+        if(!rec.start_time || !rec.vehicle_id) return alert("Preencha viatura e data de início.");
         
         showLoader(true);
         let error = null;
@@ -471,7 +473,7 @@
         } catch(e) { error = e; }
 
         if(error) {
-            alert("ERRO AO GRAVAR:\n\n" + (error.message || JSON.stringify(error)));
+            alert("ERRO AO GRAVAR:\n" + (error.message || JSON.stringify(error)));
         } else { 
             alert("Gravado com sucesso!"); 
             resetForm(); await refreshData(); 
@@ -480,7 +482,7 @@
     }
 
     function resetForm() {
-        ['booking_id','inp_vehicle','inp_user','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi'].forEach(i=>{
+        ['booking_id','inp_vehicle','inp_driver','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi'].forEach(i=>{
             const el = document.getElementById(i); if(el) el.value='';
         });
         document.getElementById('btn_save').innerText = "AGENDAR";
@@ -498,8 +500,8 @@
     function editBooking(id) {
         if(currentUser.role === 'vendedor') return;
         
-        // CORREÇÃO: Usar loose equality (==) para garantir que string ID e number ID coincidem
-        const b = bookings.find(x => x.id == id);
+        // CORREÇÃO: Converter para string para garantir comparação correta
+        const b = bookings.find(x => String(x.id) === String(id));
         if(!b) return console.error("Agendamento não encontrado:", id);
 
         if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Não pode editar de outro local.");
@@ -512,18 +514,19 @@
         nav('dash');
         document.getElementById('booking_id').value = b.id;
         document.getElementById('inp_vehicle').value = b.vehicleId;
-        document.getElementById('inp_driver').value = b.userId; // Corrigido para inp_driver
+        document.getElementById('inp_driver').value = b.userId;
         document.getElementById('inp_type').value = b.type;
         
-        // CORREÇÃO: Usar a nova função formatadora segura
+        // USAR FUNÇÃO DE DATA SEGURA
         document.getElementById('inp_start').value = formatDateForInput(b.start);
         document.getElementById('inp_end').value = formatDateForInput(b.end);
         
-        const cName = document.getElementById('inp_client_name'); if(cName) cName.value = b.clientName||'';
-        const cPhone = document.getElementById('inp_client_phone'); if(cPhone) cPhone.value = b.clientPhone||'';
-        const cNif = document.getElementById('inp_client_nif'); if(cNif) cNif.value = b.clientNif||'';
-        const cAddr = document.getElementById('inp_client_addr'); if(cAddr) cAddr.value = b.clientAddr||'';
-        const cBi = document.getElementById('inp_client_bi'); if(cBi) cBi.value = b.clientBi||'';
+        const setVal = (eid, val) => { const el = document.getElementById(eid); if(el) el.value = val || ''; };
+        setVal('inp_client_name', b.clientName);
+        setVal('inp_client_phone', b.clientPhone);
+        setVal('inp_client_nif', b.clientNif);
+        setVal('inp_client_addr', b.clientAddr);
+        setVal('inp_client_bi', b.clientBi);
         
         toggleExtraFields();
         document.getElementById('btn_save').innerText = "ATUALIZAR";
