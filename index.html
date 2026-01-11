@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v42</title>
+    <title>FleetWise Pro - v43</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -17,7 +17,7 @@
             --gaia-color: #6f42c1; --porto-color: #007bff;
         }
 
-        * { box-sizing: border-box; font-family: "Inter", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 100px; font-size: 14px; }
 
         /* LOADER */
@@ -63,7 +63,7 @@
         /* BUTTONS */
         .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem; color: white; height: 45px; text-transform: uppercase; transition: 0.2s; }
         .btn-save { background: var(--primary); }
-        .btn-cancel { background: #6c757d; margin-top: 10px; }
+        .btn-cancel { background: #6c757d; }
         .btn-excel { background-color: var(--excel); color: white; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; height: 40px; display:flex; align-items:center; justify-content:center; gap:5px;}
         .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
         .hidden { display: none !important; }
@@ -172,10 +172,12 @@
             <div class="form-row">
                 <div class="form-col"><label>Início</label><input type="datetime-local" id="inp_start"></div>
                 <div class="form-col"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
+                
+                <div class="form-col" style="display:flex; align-items:flex-end; gap:10px;">
+                    <button class="btn btn-save" id="btn_save" style="flex:1" onclick="saveBooking()">AGENDAR</button>
+                    <button class="btn btn-cancel hidden" id="btn_cancel" style="flex:1; margin-top:0;" onclick="resetForm()">CANCELAR / LIMPAR</button>
+                </div>
             </div>
-            
-            <button class="btn btn-save" id="btn_save" style="width:100%" onclick="saveBooking()">AGENDAR</button>
-            <button class="btn btn-cancel hidden" id="btn_cancel" style="width:100%" onclick="resetForm()">CANCELAR / LIMPAR</button>
         </div>
         
         <div id="msg-read-only" style="display:none; padding:15px; text-align:center; color:#666; font-style:italic; background:#fff; margin-bottom:10px;">🔒 Modo Consulta (Apenas Leitura)</div>
@@ -274,6 +276,7 @@
 </div>
 
 <script>
+    // --- CONFIG ---
     let clientDB = null;
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [], allLocations = [];
@@ -288,8 +291,9 @@
 
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
+    // --- LOGIN ---
     async function tentarLogin() {
-        if (typeof window.supabase === 'undefined') return alert("Erro de Rede");
+        if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Supabase não carregou");
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
         if (!u || !p) return alert("Preencha tudo.");
@@ -323,7 +327,7 @@
             aplicarPermissoes();
 
         } catch (err) {
-            alert(err.message);
+            alert("Login Falhou: " + err.message);
         } finally {
             showLoader(false);
         }
@@ -366,6 +370,7 @@
         if (b.error) throw b.error; 
         if (l.error) throw l.error; allLocations = l.data || [];
         
+        // --- LOGICA DE SERVIÇO EM ABERTO ---
         bookings = (b.data||[]).map(x => {
             let effEnd = x.end_time;
             if(x.type === 'Serviço' && !effEnd) { effEnd = new Date().toISOString(); }
@@ -431,6 +436,7 @@
         if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
+    // --- AÇÕES ---
     async function saveBooking() {
         const type = document.getElementById('inp_type').value;
         const start = document.getElementById('inp_start').value;
@@ -451,11 +457,11 @@
             client_phone: document.getElementById('inp_client_phone').value,
             client_nif: document.getElementById('inp_client_nif').value,
             client_addr: document.getElementById('inp_client_addr').value,
-            client_bi: document.getElementById('inp_client_bi').value
+            client_bi: document.getElementById('inp_client_bi').value // Campo novo
         };
         const id = document.getElementById('booking_id').value;
 
-        if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha tudo.");
+        if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha viatura e datas.");
         
         showLoader(true);
         let error = null;
@@ -464,8 +470,13 @@
             else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
         } catch(e) { error = e; }
 
-        if(error) alert(error.message);
-        else { alert("Gravado!"); resetForm(); await refreshData(); }
+        if(error) {
+            // ALERTA DE ERRO DETALHADO
+            alert("ERRO AO GRAVAR:\n\n" + error.message + "\n\n(Dica: Corre o SQL de atualização no Supabase!)");
+        } else { 
+            alert("Gravado com sucesso!"); 
+            resetForm(); await refreshData(); 
+        }
         showLoader(false);
     }
 
@@ -521,6 +532,7 @@
         document.getElementById('card-booking-form').scrollIntoView({behavior:'smooth'});
     }
 
+    // --- TIMELINE ---
     function renderTimeline() {
         const header = document.getElementById('gantt_header'), body = document.getElementById('gantt_body');
         if(!header || !body) return;
@@ -554,6 +566,7 @@
         });
     }
 
+    // --- LISTA ---
     function renderList() {
         const tb = document.getElementById('list_body'); if(!tb) return;
         tb.innerHTML = '';
