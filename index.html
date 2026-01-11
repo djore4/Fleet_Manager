@@ -2,8 +2,8 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v55 (Mobile Ready)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FleetWise Pro - v56</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -33,7 +33,7 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
         .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* HEADER (DESKTOP DEFAULT) */
+        /* HEADER (DESKTOP) */
         #app-content { display: none; }
         .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -52,7 +52,7 @@
         .view-section.active { display: block; animation: fadeIn 0.3s; }
         .card { background: var(--white); padding: 25px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
 
-        /* FORMS (DESKTOP DEFAULT) */
+        /* FORMS */
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; }
@@ -100,29 +100,42 @@
         .archived-row { opacity: 0.6; background-color: #f9f9f9; }
         .archived-row td { text-decoration: line-through; color: #999; }
 
-        /* ================= MOBILE RULES ================= */
+        /* ======================== MOBILE RULES ======================== */
         @media (max-width: 768px) {
-            /* 1. Formulários em coluna única (Inputs um debaixo do outro) */
-            .form-row { flex-direction: column; gap: 10px; }
-            
-            /* 2. Menu Navegação com Scroll (para caberem todos os botões) */
+            /* 1. Header Fixo e Compacto */
+            .sticky-header-group { position: sticky; top:0; z-index:2000; padding:0; }
+            header { padding: 10px; justify-content: space-between; }
+            h1 { font-size: 1rem; }
+            #user-display { font-size: 0.75rem; padding: 4px 8px; position: static; } /* User ao lado do titulo */
             nav { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            nav button { flex: 0 0 auto; margin-right: 5px; } /* Botões não encolhem */
+            nav button { padding: 10px 15px; flex-shrink: 0; }
 
-            /* 3. Cards sem margem lateral (aproveitar ecrã todo) */
+            /* 2. Container Compacto */
             .view-section { padding: 10px; }
-            .card { padding: 15px; }
+            .card { padding: 15px; margin-bottom: 10px; }
+
+            /* 3. Formulário Super Compacto (Lado a Lado) */
+            .form-row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+            .form-col { flex: 1 1 45%; min-width: 120px; } /* 2 items por linha */
+            
+            /* Viatura ocupa linha inteira */
+            .form-row > .form-col:first-child:nth-last-child(1) { flex-basis: 100%; }
+
+            /* Altura reduzida para inputs e botões */
+            input, select, .btn { height: 38px; font-size: 0.9rem; padding: 5px 8px; }
+            label { font-size: 0.7rem; margin-bottom: 2px; }
+            
+            /* Botões de Ação na mesma linha */
+            .form-col[style*="align-items:flex-end"] { flex-basis: 100%; margin-top: 5px; }
+            .btn { width: 100%; }
 
             /* 4. Timeline Ajustada */
-            .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; }
-            
-            /* 5. Filtros em coluna */
-            .filter-bar { flex-direction: column; }
-            
-            /* 6. Header mais compacto */
-            header { padding: 10px; }
-            h1 { font-size: 1rem; }
-            #user-display { font-size: 0.7rem; padding: 4px 8px; }
+            .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
+            .gantt-row { height: 45px; }
+            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
+
+            /* 5. Filtros */
+            .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
         }
     </style>
 </head>
