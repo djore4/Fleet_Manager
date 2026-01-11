@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v41</title>
+    <title>FleetWise Pro - v42</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -68,7 +68,7 @@
         .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
         .hidden { display: none !important; }
 
-        /* LOCAIS (Admin Tabs) */
+        /* LOCAIS */
         .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; margin-bottom: 20px; }
         .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f8f9fa; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; }
         .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
@@ -274,7 +274,6 @@
 </div>
 
 <script>
-    // --- CONFIG ---
     let clientDB = null;
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [], allLocations = [];
@@ -289,7 +288,6 @@
 
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
-    // --- LOGIN ---
     async function tentarLogin() {
         if (typeof window.supabase === 'undefined') return alert("Erro de Rede");
         const u = document.getElementById('u').value.trim();
@@ -340,12 +338,8 @@
         const formBooking = document.getElementById('card-booking-form');
         const msgReadOnly = document.getElementById('msg-read-only');
 
-        navFleet.style.display = 'none';
-        navPeople.style.display = 'none';
-        navUsers.style.display = 'none';
-        navLocs.style.display = 'none';
-        formBooking.style.display = 'block'; 
-        msgReadOnly.style.display = 'none';
+        navFleet.style.display = 'none'; navPeople.style.display = 'none'; navUsers.style.display = 'none'; navLocs.style.display = 'none';
+        formBooking.style.display = 'block'; msgReadOnly.style.display = 'none';
 
         if (role === 'vendedor') {
             formBooking.style.display = 'none'; msgReadOnly.style.display = 'block';
@@ -372,19 +366,14 @@
         if (b.error) throw b.error; 
         if (l.error) throw l.error; allLocations = l.data || [];
         
-        // --- LOGICA DE SERVIÇO EM ABERTO ---
-        // Se tipo = Serviço e end_time = null -> considera AGORA
         bookings = (b.data||[]).map(x => {
             let effEnd = x.end_time;
-            // Se for serviço e não tiver fim, assume a data atual
-            if(x.type === 'Serviço' && !effEnd) {
-                effEnd = new Date().toISOString(); 
-            }
+            if(x.type === 'Serviço' && !effEnd) { effEnd = new Date().toISOString(); }
             return {
                 id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
                 type:x.type, start:x.start_time, end:effEnd, location:x.location,
                 clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
-                rawEnd: x.end_time // Guardamos o original para saber se está aberto
+                rawEnd: x.end_time
             };
         });
 
@@ -400,7 +389,6 @@
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
     }
 
-    // --- NAVEGAÇÃO ---
     function nav(id) {
         document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(e => e.classList.remove('active'));
@@ -417,10 +405,7 @@
             const btn = document.createElement('button');
             btn.className = `loc-tab ${loc.name === activeLocation ? 'active' : ''}`;
             btn.innerText = loc.name;
-            btn.onclick = () => {
-                activeLocation = loc.name;
-                renderAdminLocTabs(); renderTimeline(); updateSelects(); renderList();
-            };
+            btn.onclick = () => { activeLocation = loc.name; renderAdminLocTabs(); renderTimeline(); updateSelects(); renderList(); };
             container.appendChild(btn);
         });
     }
@@ -446,13 +431,11 @@
         if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
-    // --- AÇÕES ---
     async function saveBooking() {
         const type = document.getElementById('inp_type').value;
         const start = document.getElementById('inp_start').value;
         let end = document.getElementById('inp_end').value;
 
-        // Lógica Serviço: se vazio, envia NULL
         if(type === 'Serviço' && !end) end = null;
         else if(!end) return alert("Data de fim obrigatória (exceto Serviço).");
 
@@ -476,8 +459,10 @@
         
         showLoader(true);
         let error = null;
-        if(id) { const res = await clientDB.from('bookings').update(rec).eq('id', id); error=res.error; }
-        else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
+        try {
+            if(id) { const res = await clientDB.from('bookings').update(rec).eq('id', id); error=res.error; }
+            else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
+        } catch(e) { error = e; }
 
         if(error) alert(error.message);
         else { alert("Gravado!"); resetForm(); await refreshData(); }
@@ -517,7 +502,6 @@
         document.getElementById('inp_type').value = b.type;
         document.getElementById('inp_start').value = new Date(new Date(b.start).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
         
-        // Se for serviço aberto, preenche FIM com AGORA para fechar
         if(b.type === 'Serviço' && !b.rawEnd) {
             const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
             document.getElementById('inp_end').value = now.toISOString().slice(0,16);
@@ -537,7 +521,6 @@
         document.getElementById('card-booking-form').scrollIntoView({behavior:'smooth'});
     }
 
-    // --- TIMELINE ---
     function renderTimeline() {
         const header = document.getElementById('gantt_header'), body = document.getElementById('gantt_body');
         if(!header || !body) return;
@@ -571,7 +554,6 @@
         });
     }
 
-    // --- LISTA ---
     function renderList() {
         const tb = document.getElementById('list_body'); if(!tb) return;
         tb.innerHTML = '';
@@ -611,7 +593,6 @@
 
     async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    // --- CRUD ---
     async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     async function savePeople() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
     
