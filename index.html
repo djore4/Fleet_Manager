@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v51</title>
+    <title>FleetWise Pro - v51.1</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -87,7 +87,7 @@
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
         
-        /* A LINHA VERMELHA (AGORA) */
+        /* LINHA AGORA */
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LISTS */
@@ -146,8 +146,16 @@
             <input type="hidden" id="booking_id">
             
             <div class="form-row">
-                <div class="form-col"><label>Viatura</label><select id="inp_vehicle"></select></div>
-                <div class="form-col"><label>Responsável</label><select id="inp_driver"></select></div>
+                <div class="form-col"><label>Viatura</label>
+                    <select id="inp_vehicle">
+                        <option value="" disabled selected>-- Selecione --</option>
+                    </select>
+                </div>
+                <div class="form-col"><label>Responsável</label>
+                    <select id="inp_driver">
+                        <option value="" disabled selected>-- Selecione --</option>
+                    </select>
+                </div>
                 <div class="form-col"><label>Tipo</label>
                     <select id="inp_type" onchange="toggleExtraFields()">
                         <option value="" disabled selected>-- Selecione --</option>
@@ -238,6 +246,7 @@
         <div class="card" style="border-left:5px solid #FFC107">
             <h3>Gestão de Equipa</h3>
             <input type="hidden" id="u_id_edit"> 
+            
             <div class="form-row">
                 <div class="form-col"><label>Username</label><input id="new_u_name" placeholder="Ex: joao"></div>
                 <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Vazio para manter atual"></div>
@@ -249,11 +258,17 @@
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
+                <div class="form-col"><label>Local Base</label>
+                    <select id="new_u_loc"></select>
+                </div>
             </div>
+            
             <button class="btn btn-save" id="btn_save_user" style="background:#FFC107; color:black" onclick="saveUser()">Criar / Atualizar</button>
             <button class="btn btn-cancel hidden" id="btn_cancel_user" onclick="resetUserForm()">Cancelar Edição</button>
-            <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
+
+            <div class="table-wrap" style="margin-top:20px;">
+                <table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table>
+            </div>
         </div>
     </section>
 
@@ -264,7 +279,9 @@
                 <div class="form-col"><input id="new_loc_name" placeholder="Nome do Local (Ex: Lisboa)"></div>
                 <div class="form-col"><button class="btn btn-save" style="background:#333" onclick="addLocation()">Adicionar Local</button></div>
             </div>
-            <div class="table-wrap"><table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table></div>
+            <div class="table-wrap">
+                <table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table>
+            </div>
         </div>
     </section>
 </div>
@@ -385,7 +402,21 @@
 
         populateLocationSelects();
         updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList();
+        
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
+        
+        // INICIAR COM DATAS CORRETAS
+        setDefaultDates();
+    }
+
+    function setDefaultDates() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('inp_start').value = now.toISOString().slice(0,16);
+        
+        const end = new Date(now);
+        end.setHours(end.getHours() + 1);
+        document.getElementById('inp_end').value = end.toISOString().slice(0,16);
     }
 
     function nav(id) {
@@ -424,8 +455,8 @@
     }
 
     function updateSelects() {
-        const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '';
-        const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '';
+        const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
+        const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         
         if(sCar) fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         
@@ -455,6 +486,8 @@
         // NOME DA PESSOA
         const driverId = getVal('inp_driver');
         const selectedPerson = people.find(p => String(p.id) === String(driverId));
+        // Se for Test-drive, usa o nome do cliente se existir, senão usa o nome do vendedor.
+        // Se for Emprestimo/Serviço, usa o nome da pessoa da equipa selecionada.
         const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
 
         const rec = {
@@ -464,7 +497,7 @@
             start_time: start,
             end_time: end,
             location: activeLocation, 
-            user_name: driverName, // Nome da Pessoa
+            user_name: driverName, // Nome da Pessoa Escolhida
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
@@ -506,6 +539,10 @@
         document.getElementById('btn_cancel').classList.add('hidden');
         document.getElementById('extra_fields').style.display='none';
         document.getElementById('inp_type').value = "";
+        
+        // RESET DATAS E DROPDOWNS
+        setDefaultDates();
+        updateSelects(); // Reseta os selects para "-- Selecione --"
     }
 
     function toggleExtraFields() { 
@@ -559,6 +596,7 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
+        // CALCULO DA LINHA 'AGORA'
         const now = new Date();
         const diff = now - start;
         let nowLineHtml = '';
@@ -713,10 +751,16 @@
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
     }
 
-    const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
-    const inpStart = document.getElementById('inp_start'); if(inpStart) inpStart.value = now.toISOString().slice(0,16);
-    now.setHours(now.getHours()+2);
-    const inpEnd = document.getElementById('inp_end'); if(inpEnd) inpEnd.value = now.toISOString().slice(0,16);
+    // INIT NO FIM PARA GARANTIR LIMPEZA
+    const initDates = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        if(document.getElementById('inp_start')) document.getElementById('inp_start').value = now.toISOString().slice(0,16);
+        const end = new Date(now);
+        end.setHours(end.getHours()+1);
+        if(document.getElementById('inp_end')) document.getElementById('inp_end').value = end.toISOString().slice(0,16);
+    };
+    initDates();
 
 </script>
 </body>
