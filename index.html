@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - MultiUser</title>
+    <title>FleetWise Pro - Odoo Style</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            /* PALETA ORIGINAL */
-            --primary: #017E84; --primary-dark: #015e63;
+            /* PALETA DE CORES ESTILO ODOO (DA V12.6) */
+            --primary: #017E84;
+            --primary-dark: #015e63;
             --secondary: #00A09D;
-            --bg: #F9FAFB; --text: #212529; --white: #ffffff;
-            --border: #DEE2E6; --danger: #DC3545;
+            --bg: #F9FAFB;
+            --text: #212529;
+            --white: #ffffff;
+            --border: #DEE2E6;
+            
+            --danger: #DC3545;
+            --edit: #FFC107;
             --excel: #217346;
-            --gaia-color: #6f42c1; --porto-color: #007bff;
-            --weekend: #F2F4F7; --now-line: #DC3545;
+            --weekend: #F2F4F7;
+            --now-line: #DC3545;
+            
+            /* Cores de Localização */
+            --gaia-color: #6f42c1;
+            --porto-color: #007bff;
         }
 
-        * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
         body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 150px; font-size: 15px; }
 
         /* LOADER */
@@ -28,98 +39,211 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* LOGIN SCREEN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
-        .login-box h2 { color: var(--primary); margin-top: 0; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        .login-box button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
-        
-        /* APP HEADER */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary);
+            z-index: 2000;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 90%; max-width: 400px; text-align: center;
+        }
+        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 10px; }
+        .login-box p { color: #666; margin-bottom: 30px; font-size: 0.9rem; }
+        .login-box input { margin-bottom: 15px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+        .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.3s; }
+        .login-box button:hover { background: var(--primary-dark); }
+        .login-footer { margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem; }
+
+        /* APP CONTENT */
         #app-content { display: none; }
-        header { background: var(--primary); color: var(--white); padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: center; position: relative; }
-        h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; font-weight: 700; text-align: center; }
-        #user-display { position: absolute; right: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+
+        /* HEADER (Desktop Padrão) */
+        header { 
+            background: var(--primary); 
+            color: var(--white); 
+            padding: 15px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* Centrado em Desktop */
+            position: relative;
+        }
+        h1 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            font-weight: 700; 
+            text-align: center;
+        }
+        #user-display { 
+            position: absolute; /* Fixo à direita em Desktop */
+            right: 15px;
+            font-size: 0.8rem; 
+            font-weight: normal; 
+            background: rgba(255,255,255,0.2); 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            white-space: nowrap;
+        }
 
         /* NAV */
         nav { display: flex; justify-content: center; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: sticky; top: 54px; z-index: 90; overflow-x: auto; border-bottom: 1px solid var(--border); }
-        nav button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        nav button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; white-space: nowrap; }
         nav button:hover { color: var(--primary); background-color: #f8f9fa; }
         nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #eef9f9;}
+        nav button.restricted { display: none; } 
         
-        /* TABS VISUALIZACAO */
+        /* LOCATION TABS */
         .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; }
         .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f1f3f5; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; }
         .loc-tab:hover { background: #e9ecef; }
         .loc-tab.active-gaia { background: #fff; color: var(--gaia-color); border-bottom-color: var(--gaia-color); }
         .loc-tab.active-porto { background: #fff; color: var(--porto-color); border-bottom-color: var(--porto-color); }
 
-        /* LAYOUT & CARDS */
+        /* LAYOUT */
         .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .view-section.active { display: block; animation: fadeEffect 0.3s; }
         @keyframes fadeEffect { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
+        
         .card { background: var(--white); padding: 25px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
-
+        
         /* FORMS */
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #495057; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; height: 45px; background: #fff; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; height: 45px; background: #fff; transition: border-color 0.2s; color: var(--text); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(1, 126, 132, 0.1); }
         
         #extra_fields { background-color: #f8f9fa; border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin-bottom: 20px; display: none; }
-        #extra_fields.show { display: block; }
+        #extra_fields.show { display: block; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
+        .client-header { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--primary); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
-        /* BUTTONS */
-        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem; color: white; height: 45px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem; color: white; transition: 0.2s; height: 45px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; letter-spacing: 0.5px; }
         .btn-save { background: var(--primary); }
+        .btn-save:hover { background: var(--primary-dark); }
         .btn-cancel { background: #6c757d; margin-top: 10px; }
-        .btn-excel { background-color: var(--excel); color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; height: 40px; }
-        .action-btn { padding: 8px 12px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
+        .btn-excel { background-color: var(--excel); color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; height: 40px; display: flex; align-items: center; white-space: nowrap;}
+
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .filter-input { flex: 2; min-width: 200px; height: 40px; font-size: 0.9rem; }
+        .filter-select { flex: 1; min-width: 150px; height: 40px; font-size: 0.9rem; }
         
-        /* TIMELINE (GANTT) */
-        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; }
+        /* TIMELINE */
+        .timeline-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap:wrap; gap:10px; }
+        .btn-nav { background: #fff; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; color: #555; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-nav:hover { background: #f0f0f0; border-color: #bbb; }
+        .btn-zoom { background: #eef9f9; color: var(--primary); border: 1px solid #b2dfdb; font-size: 1.1rem; padding: 5px 12px; }
+        .btn-zoom:hover { background: #e0f2f1; }
+
+        .timeline-wrapper { 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            border: 1px solid var(--border); 
+            border-radius: 4px; 
+            background: white; 
+            min-height: 60vh; 
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        .timeline-wrapper::-webkit-scrollbar { display: none; }
+
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
-        .gantt-corner { min-width: 140px; width: 140px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
-        .gantt-days { flex: 1; display: flex; height: 100%; }
-        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.9rem; height: 100%; }
-        .gantt-row { display: flex; min-width: 100%; height: 60px; border-bottom: 1px solid #eee; position: relative; }
-        .gantt-label { min-width: 140px; width: 140px; background: white; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 10; padding: 0 10px; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; }
+        .gantt-corner { min-width: 140px; width: 140px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 0.85rem; }
+        .gantt-days { flex: 1; display: flex; height: 100%; position: relative; }
+        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.9rem; overflow: hidden; height: 100%; position:relative;}
+        .gantt-day.month-start { border-left: 2px solid var(--border); background-color: #e9ecef !important; color: var(--text); }
+        .gantt-row { display: flex; min-width: 100%; height: 70px; border-bottom: 1px solid #eee; position: relative; }
+        .gantt-label { min-width: 140px; width: 140px; background: white; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 10; padding: 0 10px; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; box-shadow: 2px 0 5px rgba(0,0,0,0.05); color: #333; }
         .gantt-track { flex: 1; position: relative; height: 100%; display: flex; }
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
-        .gantt-bar { position: absolute; height: 34px; top: 13px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
+        .gantt-guide.month-start { border-left: 2px solid var(--border); } 
+        .gantt-bar { position: absolute; height: 40px; top: 15px; border-radius: 4px; color: white; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; letter-spacing: 0.3px; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
-
-        /* UTILS */
-        .hidden { display: none !important; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
-        .w-10 { width: 10%; } .w-20 { width: 20%; } .w-30 { width: 30%; } .w-40 { width: 40%; }
-        .text-center { text-align: center; } .text-right { text-align: right; }
+        
+        /* TABLES */
         .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        th { background: #f8f9fa; font-weight: bold; text-align: left; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; background: white; table-layout: fixed; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+        th { background: #f8f9fa; color: #495057; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; text-align: left; border-bottom: 2px solid var(--border); cursor: pointer; }
+        .client-info { font-size: 0.85rem; color: #555; margin-top: 6px; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid var(--secondary); display:block; white-space: normal; line-height: 1.4; }
 
-        /* MOBILE */
+        /* UTILITARIOS */
+        .w-20 { width: 20%; } .w-10 { width: 10%; } .w-25 { width: 25%; } .w-15 { width: 15%; } .w-40 { width: 40%; }
+        .text-left { text-align: left; } .text-center { text-align: center; } .text-right { text-align: right; }
+        .badge { padding: 6px 10px; border-radius: 4px; color: white; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; display:inline-block; letter-spacing: 0.5px; }
+        .action-btn { padding: 8px 12px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; font-size: 0.9rem; color: #555; }
+        .action-btn:hover { background-color: #f8f9fa; border-color: #ccc; }
+        .hidden { display: none !important; }
+        .error-msg { color: var(--danger); font-weight: bold; text-align: center; margin-top: 10px; display: none; font-size: 1rem; }
+        .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; opacity: 0.9; }
+        .loc-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; margin-right:5px; text-transform:uppercase; }
+
+        /* --- MOBILE OPTIMIZATIONS (Mantendo estilo Odoo) --- */
         @media (max-width: 768px) {
-            .form-row { flex-direction: column; gap: 10px; }
-            .gantt-corner, .gantt-label { width: 100px; min-width: 100px; font-size: 0.75rem; }
+            body { font-size: 13px; padding-bottom: 80px; }
+            
+            /* Header Fix */
+            header { justify-content: space-between; padding: 12px 15px; }
+            h1 { font-size: 1rem; text-align: left; flex: 1; }
+            #user-display { position: static; font-size: 0.75rem; padding: 6px 10px; margin-left: 10px; right: auto; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+
+            /* Navigation */
+            nav { top: 50px; }
+            nav button { padding: 10px 12px; font-size: 0.85rem; border-bottom-width: 2px; }
+
+            /* Layout */
+            .view-section { padding: 10px; }
+            .card { padding: 15px; margin-bottom: 15px; }
+            
+            /* Forms - Stack Vertical */
+            .form-row { flex-direction: column; gap: 10px; align-items: stretch; margin-bottom: 10px; }
+            label { font-size: 0.75rem; margin-bottom: 2px; }
+            input, select, .btn { height: 36px; font-size: 0.9rem; padding: 0 10px; }
+            .btn { font-size: 0.85rem; margin-top: 5px; }
+            .loc-tab { padding: 10px; font-size: 0.85rem; }
+            #extra_fields { padding: 15px; }
+
+            /* Timeline Compacta */
+            .timeline-toolbar { gap: 5px; justify-content: center; }
+            .btn-nav { padding: 6px 12px; font-size: 0.8rem; }
+            .gantt-header { height: 40px; }
+            .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; padding: 0 5px; text-align: left; }
+            .gantt-row { height: 50px; } 
+            .gantt-bar { height: 28px; top: 11px; font-size: 0.7rem; border-radius: 3px; }
+            
+            /* Tables */
+            th, td { padding: 8px; font-size: 0.8rem; }
             .filter-bar { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><p style="margin-top:10px;color:#666;">A carregar...</p></div>
+<div id="loader"><div class="spinner"></div><p style="margin-top:15px;color:#666;font-weight:bold;">A carregar...</p></div>
 
 <div id="login-screen">
     <div class="login-box">
-        <h2>FleetWise Pro</h2>
-        <input type="text" id="u" placeholder="Utilizador" value="admin">
-        <input type="password" id="p" placeholder="Senha" value="123">
+        <h2>FleetWise</h2>
+        <p>Gestão de Viaturas - Cloud</p>
+        <input type="text" id="u" placeholder="Utilizador">
+        <input type="password" id="p" placeholder="Senha">
         <button onclick="tentarLogin()">ENTRAR</button>
+        <p id="login_error" class="error-msg"></p>
     </div>
+    <div class="login-footer">Powered by Odoo Philosophy</div>
 </div>
 
 <div id="app-content">
+
     <header>
         <h1>Gestão de Viaturas</h1>
         <div id="user-display" onclick="location.reload()">👤 <span id="user_label">...</span> (Sair)</div>
@@ -139,14 +263,14 @@
             <button class="loc-tab" id="btn-loc-porto" onclick="changeLocation('Porto')">📍 PORTO</button>
         </div>
 
-        <div class="card" id="card-booking-form" style="border-top:none;">
+        <div class="card" id="card-booking-form" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top:none;">
             <input type="hidden" id="booking_id">
             <div class="form-row">
                 <div class="form-col"><label>Viatura</label><select id="inp_vehicle"></select></div>
                 <div class="form-col">
                     <label>Tipo</label>
                     <select id="inp_type" onchange="toggleExtraFields()">
-                        <option value="" disabled selected>-- Selecione --</option>
+                        <option value="" disabled selected>-- Selecione Tipo --</option>
                         <option value="Test-drive">Test-drive</option>
                         <option value="Empréstimo">Empréstimo</option>
                         <option value="Serviço">Serviço</option>
@@ -157,14 +281,15 @@
             </div>
 
             <div id="extra_fields">
-                <h4 style="margin:0 0 10px 0; color:var(--primary)">Dados Cliente</h4>
+                <h4 class="client-header">Dados do Cliente (Opcional)</h4>
                 <div class="form-row">
-                    <div class="form-col"><label>Nome</label><input id="inp_client_name"></div>
-                    <div class="form-col"><label>Telefone</label><input type="tel" id="inp_client_phone"></div>
+                    <div class="form-col"><label>Nome Cliente</label><input type="text" id="inp_client_name" placeholder="Nome completo"></div>
+                    <div class="form-col"><label>Telefone</label><input type="tel" id="inp_client_phone" placeholder="Contacto"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-col"><label>NIF</label><input id="inp_client_nif"></div>
-                    <div class="form-col"><label>Morada</label><input id="inp_client_addr"></div>
+                    <div class="form-col"><label>BI / CC</label><input type="text" id="inp_client_bi"></div>
+                    <div class="form-col"><label>NIF</label><input type="text" id="inp_client_nif"></div>
+                    <div class="form-col"><label>Morada</label><input type="text" id="inp_client_addr"></div>
                 </div>
             </div>
 
@@ -172,96 +297,147 @@
                 <div class="form-col"><label>Início</label><input type="datetime-local" id="inp_start"></div>
                 <div class="form-col"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
                 <div class="form-col">
-                    <label style="visibility:hidden">.</label>
+                    <label style="visibility:hidden">Ação</label>
                     <button class="btn btn-save" id="btn_save" onclick="saveBooking()">AGENDAR</button>
                     <button class="btn btn-cancel hidden" id="btn_cancel" onclick="resetForm()">CANCELAR</button>
                 </div>
             </div>
+            <p id="error_msg" class="error-msg"></p>
+        </div>
+        
+        <div id="msg-read-only" style="display:none; padding:15px; text-align:center; color:#666; font-style:italic; background:#fff; border:1px solid #eee; margin-bottom:20px; border-radius:4px;">
+            🔒 Modo de consulta (Vendedor)
         </div>
 
         <div class="card" style="padding:0; overflow:hidden;">
-            <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; border-bottom:1px solid #eee;">
-                <div>
-                    <button class="action-btn" onclick="shiftTime(-1)">‹</button>
-                    <button class="action-btn" onclick="goToday()">Hoje</button>
-                    <button class="action-btn" onclick="shiftTime(1)">›</button>
+            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-nav" onclick="shiftTime(-1)">‹</button>
+                    <button class="btn-nav" onclick="goToday()">Hoje</button>
+                    <button class="btn-nav" onclick="shiftTime(1)">›</button>
                 </div>
-                <div>
-                    <button class="action-btn" onclick="changeZoom(-20)">➖</button>
-                    <button class="action-btn" onclick="changeZoom(20)">➕</button>
+                <div style="display:flex; gap:10px;">
+                    <input type="date" id="date_picker" style="border:none; width:auto; font-weight:bold; color:var(--primary); font-size:1rem;" onchange="jumpDate(this.value)">
+                    <button class="btn-nav btn-zoom" onclick="changeZoom(-20)">➖</button>
+                    <button class="btn-nav btn-zoom" onclick="changeZoom(20)">➕</button>
                 </div>
             </div>
             <div class="timeline-wrapper">
                 <div id="gantt_header" class="gantt-header"></div>
                 <div id="gantt_body"></div>
             </div>
+            <div style="padding:10px; display:flex; justify-content:center; gap:20px; font-size:0.8rem; background:#fafafa; border-top:1px solid #eee; flex-wrap:wrap; color:#666;">
+                <span style="display:flex; align-items:center"><span class="color-dot" style="background:#28a745"></span>Test-drive</span>
+                <span style="display:flex; align-items:center"><span class="color-dot" style="background:#17a2b8"></span>Empréstimo</span>
+                <span style="display:flex; align-items:center"><span class="color-dot" style="background:#fd7e14"></span>Serviço</span>
+                <span style="display:flex; align-items:center"><span class="color-dot" style="background:#dc3545"></span>Indisponível</span>
+            </div>
         </div>
     </section>
 
     <section id="tab-list" class="view-section">
         <div class="card">
-            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="flex:1; padding:10px; border:1px solid #ddd;">
+            <div class="filter-bar">
+                <input type="text" id="filter_text" class="filter-input" placeholder="🔍 Pesquisar..." onkeyup="renderList()">
+                <select id="filter_loc" class="filter-select" onchange="renderList()">
+                    <option value="">Todas as Localizações</option>
+                    <option value="Gaia">Gaia</option>
+                    <option value="Porto">Porto</option>
+                </select>
+                <select id="filter_type" class="filter-select" onchange="renderList()">
+                    <option value="">Todos os Tipos</option>
+                    <option value="Test-drive">Test-drive</option>
+                    <option value="Empréstimo">Empréstimo</option>
+                    <option value="Serviço">Serviço</option>
+                    <option value="Indisponível">Indisponível</option>
+                </select>
                 <button class="btn-excel" onclick="exportToExcel()">⬇ Excel</button>
             </div>
             <div class="table-wrap">
                 <table id="table_bookings">
-                    <thead><tr><th>Local</th><th>Viatura</th><th>Responsável</th><th>Tipo</th><th>Datas</th><th>Ações</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th class="w-10 text-center">Local</th>
+                            <th class="w-20 text-left">Viatura</th>
+                            <th class="w-20 text-left">Responsável</th>
+                            <th class="w-10 text-center">Tipo</th>
+                            <th class="w-25 text-left">Datas</th>
+                            <th class="w-10 text-center">Duração</th>
+                            <th class="w-10 text-right">Ações</th>
+                        </tr>
+                    </thead>
                     <tbody id="list_body"></tbody>
                 </table>
             </div>
+            <div id="empty_list" style="padding:30px; text-align:center; color:#999; display:none; font-size:1.1rem;">Sem resultados.</div>
         </div>
     </section>
 
     <section id="tab-fleet" class="view-section">
         <div class="card" style="border-left:5px solid var(--primary)">
-            <h3>Gerir Viaturas</h3>
+            <h3>Viaturas</h3>
+            <input type="hidden" id="f_id">
             <div class="form-row">
-                <input id="f_name" placeholder="Modelo">
-                <input id="f_plate" placeholder="Matrícula">
-                <select id="f_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                <div class="form-col"><label>Modelo</label><input type="text" id="f_name"></div>
+                <div class="form-col"><label>Matrícula</label><input type="text" id="f_plate" style="text-transform:uppercase"></div>
+                <div class="form-col">
+                    <label>Localização (Base)</label>
+                    <select id="f_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                </div>
             </div>
             <button class="btn btn-save" onclick="saveFleet()">Guardar Viatura</button>
         </div>
         <div class="card">
+            <div class="filter-bar">
+                <input type="text" id="filter_f_text" class="filter-input" placeholder="🔍 Pesquisar Viatura..." onkeyup="renderFleet()">
+            </div>
             <div class="table-wrap">
-                <table width="100%"><thead><tr><th>Local</th><th>Viatura</th><th>Matrícula</th><th>Ações</th></tr></thead><tbody id="fleet_body"></tbody></table>
+                <table width="100%"><thead><tr><th class="w-10 text-center">Local</th><th class="w-40 text-left">Viatura</th><th class="w-30 text-left">Matrícula</th><th class="w-20 text-right">Ações</th></tr></thead><tbody id="fleet_body"></tbody></table>
             </div>
         </div>
     </section>
 
     <section id="tab-people" class="view-section">
         <div class="card" style="border-left:5px solid var(--primary)">
-            <h3>Gerir Pessoas</h3>
+            <h3>Pessoas</h3>
             <div class="form-row">
-                <input id="p_name" placeholder="Nome">
-                <input id="p_role" placeholder="Cargo">
-                <select id="p_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                <div class="form-col"><label>Nome</label><input type="text" id="p_name"></div>
+                <div class="form-col"><label>Cargo</label><input type="text" id="p_role"></div>
+                <div class="form-col">
+                    <label>Localização (Base)</label>
+                    <select id="p_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select>
+                </div>
             </div>
             <button class="btn btn-save" onclick="savePeople()">Guardar Pessoa</button>
         </div>
         <div class="card">
+            <div class="filter-bar">
+                <input type="text" id="filter_p_text" class="filter-input" placeholder="🔍 Pesquisar Pessoa..." onkeyup="renderPeople()">
+            </div>
             <div class="table-wrap">
-                <table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table>
+                <table width="100%"><thead><tr><th class="w-10 text-center">Local</th><th class="w-40 text-left">Nome</th><th class="w-30 text-left">Cargo</th><th class="w-20 text-right">Ações</th></tr></thead><tbody id="people_body"></tbody></table>
             </div>
         </div>
     </section>
 
     <section id="tab-users" class="view-section">
-        <div class="card" style="border-left:5px solid #FFC107">
-            <h3>Gerir Equipa (Logins)</h3>
+        <div class="card" style="border-left:5px solid #FFC107;">
+            <h3>Nova Conta de Acesso</h3>
             <div class="form-row">
-                <input id="new_u_name" placeholder="Username (Ex: joao)">
-                <input id="new_u_pass" placeholder="Senha (Ex: 123)">
-                <select id="new_u_role">
-                    <option value="vendedor">Vendedor (Só Consulta)</option>
-                    <option value="genius">Genius (Gestor)</option>
-                    <option value="admin">Administrador</option>
-                </select>
+                <div class="form-col"><label>Username</label><input id="new_u_name" placeholder="Ex: joao.silva"></div>
+                <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Ex: 1234"></div>
+                <div class="form-col"><label>Perfil</label>
+                    <select id="new_u_role">
+                        <option value="vendedor">Vendedor (Apenas Consulta)</option>
+                        <option value="genius">Genius (Gestão de Frota)</option>
+                        <option value="admin">Administrador (Total)</option>
+                    </select>
+                </div>
             </div>
             <button class="btn btn-save" onclick="addUser()">Criar Utilizador</button>
         </div>
         <div class="card">
+            <h3>Contas Existentes</h3>
             <div class="table-wrap">
                 <table width="100%"><thead><tr><th>Username</th><th>Perfil</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table>
             </div>
@@ -275,68 +451,70 @@
     let clientDB = null;
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [];
+    
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
-
-    // Estado Visual
+    
+    // VISUAL
+    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14', 'Indisponível':'#dc3545' };
+    const locColors = { 'Gaia':'#6f42c1', 'Porto':'#007bff' };
     let activeLocation = 'Gaia';
     let currentDate = new Date();
     let zoomLevel = 100;
-    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14', 'Indisponível':'#dc3545' };
-    const locColors = { 'Gaia':'#6f42c1', 'Porto':'#007bff' };
 
-    function loader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+    function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
     // --- 2. LOGIN & PERMISSÕES ---
     async function tentarLogin() {
-        if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Supabase não carregou.");
+        if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Biblioteca não carregada.");
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
-        if(!u || !p) return alert("Preencha tudo.");
+        if (!u || !p) return alert("Preencha tudo.");
 
-        loader(true);
+        showLoader(true);
         try {
             clientDB = window.supabase.createClient(URL_DB, KEY_DB);
             let { data: user, error } = await clientDB.from('app_users').select('*').eq('username', u).eq('password', p).single();
-            
-            if (error || !user) throw new Error("Credenciais erradas.");
-            
+
+            if (error || !user) throw new Error("Credenciais inválidas.");
+
             currentUser = user;
             await refreshData();
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('user_label').innerText = `${user.username} (${user.role})`;
-            
+
             aplicarPermissoes();
 
-        } catch(e) { alert(e.message); } 
-        finally { loader(false); }
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            showLoader(false);
+        }
     }
 
     function aplicarPermissoes() {
         const role = currentUser.role;
-        const navFleet = document.getElementById('nav-fleet');
-        const navPeople = document.getElementById('nav-people');
+        const navConf = document.getElementById('nav-conf');
         const navUsers = document.getElementById('nav-users');
-        const bookingForm = document.getElementById('card-booking-form');
+        const formBooking = document.getElementById('card-booking-form');
+        const msgReadOnly = document.getElementById('msg-read-only');
 
-        // Reset
-        navFleet.style.display = 'none'; navPeople.style.display = 'none'; navUsers.style.display = 'none';
-        bookingForm.style.display = 'block';
+        // Reset (esconder tudo sensível)
+        navConf.style.display = 'none'; 
+        navUsers.style.display = 'none';
+        formBooking.style.display = 'block'; 
+        msgReadOnly.style.display = 'none';
 
-        if(role === 'vendedor') {
-            // Vendedor: Só vê Dash (Timeline) e Lista. Não vê Form de criar.
-            bookingForm.style.display = 'none'; // Esconde formulário de agendar
+        if (role === 'vendedor') {
+            formBooking.style.display = 'none'; msgReadOnly.style.display = 'block';
         } else if (role === 'genius') {
-            // Genius: Vê Dash, Lista, Fleet, People
-            navFleet.style.display = 'block'; navPeople.style.display = 'block';
+            navConf.style.display = 'block';
         } else if (role === 'admin') {
-            // Admin: Vê tudo
-            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block';
+            navConf.style.display = 'block'; navUsers.style.display = 'block';
         }
-        
-        if(role === 'vendedor') changeTab('list'); else changeTab('input');
+        nav('dash');
     }
 
     async function refreshData() {
@@ -345,20 +523,19 @@
             clientDB.from('people').select('*'),
             clientDB.from('bookings').select('*')
         ]);
+        
         if (f.error) throw f.error; fleet = f.data || [];
         if (p.error) throw p.error; people = p.data || [];
         if (b.error) throw b.error; 
         
-        // Map snake_case to camelCase
         bookings = (b.data||[]).map(x => ({
             id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
-            clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr
+            clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi
         }));
 
-        // Se Admin, buscar users
-        if(currentUser && currentUser.role === 'admin') {
-            let u = await clientDB.from('app_users').select('*');
+        if (currentUser && currentUser.role === 'admin') {
+            const u = await clientDB.from('app_users').select('*');
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
@@ -366,14 +543,15 @@
     }
 
     // --- 3. NAVEGAÇÃO ---
-    function changeTab(tab) {
+    function nav(id) {
         document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(e => e.classList.remove('active'));
-        document.getElementById('tab-'+tab).classList.add('active');
-        document.getElementById('nav-'+tab).classList.add('active');
-        if(tab==='input') { renderTimeline(); }
+        document.getElementById('tab-'+id).classList.add('active');
+        const btn = document.getElementById('nav-'+id);
+        if(btn) btn.classList.add('active');
+        if(id === 'dash') renderTimeline();
     }
-    
+
     function changeLocation(loc) { 
         activeLocation = loc;
         document.querySelectorAll('.loc-tab').forEach(e => e.classList.remove('active-gaia', 'active-porto'));
@@ -382,11 +560,18 @@
         renderTimeline(); updateSelects();
     }
 
+    function updateSelects() {
+        const sCar = document.getElementById('inp_vehicle'); sCar.innerHTML = '';
+        const sDriver = document.getElementById('inp_driver'); sDriver.innerHTML = '';
+        fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
+        people.forEach(p => sDriver.add(new Option(p.name, p.id)));
+    }
+
     // --- 4. AÇÕES ---
     async function saveBooking() {
         const rec = {
             vehicle_id: document.getElementById('inp_vehicle').value,
-            user_id: document.getElementById('inp_user').value,
+            user_id: document.getElementById('inp_driver').value,
             type: document.getElementById('inp_type').value,
             start_time: document.getElementById('inp_start').value,
             end_time: document.getElementById('inp_end').value,
@@ -395,27 +580,59 @@
             client_name: document.getElementById('inp_client_name').value,
             client_phone: document.getElementById('inp_client_phone').value,
             client_nif: document.getElementById('inp_client_nif').value,
-            client_addr: document.getElementById('inp_client_addr').value
+            client_addr: document.getElementById('inp_client_addr').value,
+            client_bi: document.getElementById('inp_client_bi').value
         };
         const id = document.getElementById('booking_id').value;
 
         if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha tudo.");
         
-        loader(true);
+        showLoader(true);
         let error = null;
         if(id) { const res = await clientDB.from('bookings').update(rec).eq('id', id); error=res.error; }
         else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
 
         if(error) alert(error.message);
         else { alert("Gravado!"); resetForm(); await refreshData(); }
-        loader(false);
+        showLoader(false);
     }
 
-    async function delBooking(id) {
-        if(confirm("Apagar?")) { loader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); loader(false); }
+    function resetForm() {
+        ['booking_id','inp_vehicle','inp_user','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi'].forEach(i=>document.getElementById(i).value='');
+        document.getElementById('btn_save').innerText = "AGENDAR";
+        document.getElementById('btn_cancel').classList.add('hidden');
+        document.getElementById('extra_fields').style.display='none';
+        document.getElementById('inp_type').value = "";
     }
 
-    // --- 5. RENDERERS (GANTT, LISTAS, ETC) ---
+    function toggleExtraFields() { 
+        const t = document.getElementById('inp_type').value; 
+        if(t==='Test-drive'||t==='Empréstimo') document.getElementById('extra_fields').style.display='block'; 
+        else document.getElementById('extra_fields').style.display='none';
+    }
+
+    function editBooking(id) {
+        if(currentUser.role === 'vendedor') return;
+        const b = bookings.find(x => x.id == id);
+        changeLocation(b.location); nav('dash');
+        document.getElementById('booking_id').value = b.id;
+        document.getElementById('inp_vehicle').value = b.vehicleId;
+        document.getElementById('inp_user').value = b.userId;
+        document.getElementById('inp_type').value = b.type;
+        document.getElementById('inp_start').value = new Date(new Date(b.start).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
+        document.getElementById('inp_end').value = new Date(new Date(b.end).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
+        document.getElementById('inp_client_name').value = b.clientName||'';
+        document.getElementById('inp_client_phone').value = b.clientPhone||'';
+        document.getElementById('inp_client_nif').value = b.clientNif||'';
+        document.getElementById('inp_client_addr').value = b.clientAddr||'';
+        document.getElementById('inp_client_bi').value = b.clientBi||'';
+        toggleExtraFields();
+        document.getElementById('btn_save').innerText = "ATUALIZAR";
+        document.getElementById('btn_cancel').classList.remove('hidden');
+        document.getElementById('card-booking-form').scrollIntoView({behavior:'smooth'});
+    }
+
+    // --- TIMELINE ---
     function renderTimeline() {
         const header = document.getElementById('gantt_header'), body = document.getElementById('gantt_body');
         const start = new Date(currentDate); start.setHours(0,0,0,0);
@@ -432,98 +649,87 @@
 
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
-            let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name}</small></div><div class="gantt-track">`;
-            for(let i=0; i<days; i++) {
-                let d = new Date(start); d.setDate(d.getDate()+i);
-                let bg = (d.getDay()===0||d.getDay()===6) ? 'background:#f9f9f9' : '';
-                row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; ${bg}"></div>`;
-            }
+            let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small style="color:#888">${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
+            for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
             
             bookings.filter(b => b.vehicleId == c.id && b.location === activeLocation).forEach(b => {
                 let s = new Date(b.start), e = new Date(b.end);
                 let left = ((s - start) / msDay) * zoomLevel;
                 let width = ((e - s) / msDay) * zoomLevel;
-                if(width < 5) width = 5;
-                // Vendedor não pode clicar para editar
-                let clickAction = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                row += `<div class="gantt-bar" ${clickAction} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${b.clientName || b.userName}">${b.clientName || b.userName}</div>`;
+                if(width < 10) width = 10;
+                let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
+                let label = (b.type === 'Test-drive' || b.type === 'Empréstimo') ? (b.clientName || 'Cliente') : b.userName;
+                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">${label}</div>`;
             });
             body.innerHTML += row + `</div></div>`;
         });
     }
 
+    // --- LISTA ---
     function renderList() {
         const tb = document.getElementById('list_body'); tb.innerHTML = '';
         const filter = document.getElementById('filter_text').value.toLowerCase();
+        const filterLoc = document.getElementById('filter_loc').value;
+        const filterType = document.getElementById('filter_type').value;
         
         bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
         bookings.forEach(b => {
             const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
             const person = people.find(p => p.id == b.userId) || {name:'?'};
-            if(!car.plate.toLowerCase().includes(filter) && !person.name.toLowerCase().includes(filter)) return;
-
-            const date = new Date(b.start).toLocaleString('pt-PT');
             
-            // Botões só para quem pode
-            let btns = '';
-            if(currentUser.role !== 'vendedor') {
-                btns = `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>
-                        <button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>`;
-            }
+            if(filterLoc && b.location !== filterLoc) return;
+            if(filterType && b.type !== filterType) return;
+            const txt = (car.plate + car.name + person.name + (b.clientName||'')).toLowerCase();
+            if(!txt.includes(filter)) return;
+
+            const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+            let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
+            let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
+            
+            const dur = getDuration(b.start, b.end);
 
             tb.innerHTML += `<tr>
-                <td><span class="badge" style="background:${locColors[b.location]}">${b.location}</span></td>
+                <td><span class="loc-badge" style="background:${locColors[b.location] || '#999'}">${b.location}</span></td>
                 <td><b>${car.plate}</b><br><small>${car.name}</small></td>
                 <td>${person.name}</td>
-                <td><span class="badge" style="background:${colors[b.type]}">${b.type}</span></td>
+                <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
                 <td><small>${date}</small></td>
-                <td class="text-right">${btns}</td>
+                <td><b>${dur}</b></td>
+                <td style="text-align:right">${editBtn} ${delBtn}</td>
             </tr>`;
         });
     }
 
-    // --- UTILITÁRIOS ---
-    function updateSelects() {
-        const sv = document.getElementById('inp_vehicle'), su = document.getElementById('inp_user');
-        sv.innerHTML = '<option value="" disabled selected>-- Viatura --</option>';
-        su.innerHTML = '<option value="" disabled selected>-- Responsável --</option>';
-        fleet.filter(c => c.location === activeLocation).forEach(c => sv.add(new Option(`${c.name} (${c.plate})`, c.id)));
-        people.forEach(p => su.add(new Option(p.name, p.id)));
+    // --- CRUD ---
+    async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
+    async function addPerson() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
+    async function addUser() { const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value; if(u&&p){ showLoader(true); await clientDB.from('app_users').insert({username:u,password:p,role:r}); await refreshData(); showLoader(false); alert("User criado!"); } }
+    
+    function renderFleet() { 
+        const t=document.getElementById('fleet_body'); t.innerHTML=''; 
+        const filter = document.getElementById('filter_f_text').value.toLowerCase();
+        fleet.filter(c => c.name.toLowerCase().includes(filter) || c.plate.toLowerCase().includes(filter)).forEach(c => {
+            t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td style="text-align:right"><button onclick="delRec('fleet',${c.id})" class="action-btn" style="color:red">✕</button></td></tr>`;
+        });
     }
     
-    function editBooking(id) {
-        if(currentUser.role === 'vendedor') return;
-        const b = bookings.find(x => x.id == id);
-        changeLocation(b.location); changeTab('input');
-        document.getElementById('booking_id').value = b.id;
-        document.getElementById('inp_vehicle').value = b.vehicleId;
-        document.getElementById('inp_user').value = b.userId;
-        document.getElementById('inp_type').value = b.type;
-        document.getElementById('inp_start').value = new Date(new Date(b.start).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
-        document.getElementById('inp_end').value = new Date(new Date(b.end).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
-        document.getElementById('inp_client_name').value = b.clientName||'';
-        document.getElementById('inp_client_phone').value = b.clientPhone||'';
-        document.getElementById('inp_client_nif').value = b.clientNif||'';
-        document.getElementById('inp_client_addr').value = b.clientAddr||'';
-        toggleExtraFields();
-        document.getElementById('btn_save').innerText = "ATUALIZAR";
-        document.getElementById('btn_cancel').classList.remove('hidden');
+    function renderPeople() { 
+        const t=document.getElementById('people_body'); t.innerHTML=''; 
+        const filter = document.getElementById('filter_p_text').value.toLowerCase();
+        people.filter(p => p.name.toLowerCase().includes(filter)).forEach(p => {
+            t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right"><button onclick="delRec('people',${p.id})" class="action-btn" style="color:red">✕</button></td></tr>`;
+        });
     }
+    
+    function renderUsersList() { const t=document.getElementById('users_list'); t.innerHTML=''; appUsers.forEach(u=>t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td style="text-align:right"><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`); }
+    async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
+    async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    function resetForm() {
-        ['booking_id','inp_vehicle','inp_user','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr'].forEach(i=>document.getElementById(i).value='');
-        document.getElementById('btn_save').innerText = "AGENDAR";
-        document.getElementById('btn_cancel').classList.add('hidden');
-    }
-    function toggleExtraFields() { 
-        const t = document.getElementById('inp_type').value; 
-        if(t==='Test-drive'||t==='Empréstimo') document.getElementById('extra_fields').style.display='block'; 
-        else document.getElementById('extra_fields').style.display='none';
-    }
-    
+    // UTILS
     function shiftTime(d) { currentDate.setDate(currentDate.getDate()+d); renderTimeline(); }
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
+    function getDuration(start, end) { const diff = new Date(end) - new Date(start); const mins = Math.floor(diff / 60000); const hours = Math.floor(mins / 60); const days = Math.floor(hours / 24); if(days > 0) return `${days}d ${hours%24}h`; return `${hours}h ${mins%60}m`; }
     function exportToExcel() {
         let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente\n";
         bookings.forEach(b => {
@@ -534,18 +740,7 @@
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
     }
 
-    // --- CRUD FROTA/PESSOAS/USERS ---
-    async function saveFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p) { await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); } }
-    async function savePeople() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n) { await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); } }
-    async function addUser() { const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value; if(u&&p) { await clientDB.from('app_users').insert({username:u,password:p,role:r}); await refreshData(); alert("Criado!"); } }
-    
-    function renderFleet() { const t=document.getElementById('fleet_body'); t.innerHTML=''; fleet.forEach(c=>t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td><button onclick="delRec('fleet',${c.id})">X</button></td></tr>`); }
-    function renderPeople() { const t=document.getElementById('people_body'); t.innerHTML=''; people.forEach(p=>t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td><button onclick="delRec('people',${p.id})">X</button></td></tr>`); }
-    function renderUsersList() { const t=document.getElementById('users_list'); t.innerHTML=''; appUsers.forEach(u=>t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td><button onclick="delRec('app_users',${u.id})">X</button></td></tr>`); }
-    
-    async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
-
-    // Init Dates
+    // Init
     const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
     document.getElementById('inp_start').value = now.toISOString().slice(0,16);
     now.setHours(now.getHours()+2);
