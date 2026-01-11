@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v50</title>
+    <title>FleetWise Pro - v51</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -87,7 +87,7 @@
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
         
-        /* A LINHA VERMELHA RESTAURADA */
+        /* A LINHA VERMELHA (AGORA) */
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LISTS */
@@ -144,6 +144,7 @@
 
         <div class="card" id="card-booking-form" style="border-top:none;">
             <input type="hidden" id="booking_id">
+            
             <div class="form-row">
                 <div class="form-col"><label>Viatura</label><select id="inp_vehicle"></select></div>
                 <div class="form-col"><label>Responsável</label><select id="inp_driver"></select></div>
@@ -237,7 +238,6 @@
         <div class="card" style="border-left:5px solid #FFC107">
             <h3>Gestão de Equipa</h3>
             <input type="hidden" id="u_id_edit"> 
-            
             <div class="form-row">
                 <div class="form-col"><label>Username</label><input id="new_u_name" placeholder="Ex: joao"></div>
                 <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Vazio para manter atual"></div>
@@ -249,17 +249,11 @@
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div class="form-col"><label>Local Base</label>
-                    <select id="new_u_loc"></select>
-                </div>
+                <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
             </div>
-            
             <button class="btn btn-save" id="btn_save_user" style="background:#FFC107; color:black" onclick="saveUser()">Criar / Atualizar</button>
             <button class="btn btn-cancel hidden" id="btn_cancel_user" onclick="resetUserForm()">Cancelar Edição</button>
-
-            <div class="table-wrap" style="margin-top:20px;">
-                <table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table>
-            </div>
+            <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
         </div>
     </section>
 
@@ -270,9 +264,7 @@
                 <div class="form-col"><input id="new_loc_name" placeholder="Nome do Local (Ex: Lisboa)"></div>
                 <div class="form-col"><button class="btn btn-save" style="background:#333" onclick="addLocation()">Adicionar Local</button></div>
             </div>
-            <div class="table-wrap">
-                <table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table>
-            </div>
+            <div class="table-wrap"><table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table></div>
         </div>
     </section>
 </div>
@@ -358,6 +350,9 @@
     }
 
     async function refreshData() {
+        // Limpar arrays para evitar duplicados
+        fleet = []; people = []; bookings = []; allLocations = [];
+
         const [f, p, b, l] = await Promise.all([
             clientDB.from('fleet').select('*'),
             clientDB.from('people').select('*'),
@@ -367,15 +362,15 @@
         
         if (f.error) throw f.error; fleet = f.data || [];
         if (p.error) throw p.error; people = p.data || [];
-        if (b.error) throw b.error; 
+        if (b.error) throw b.error; bookings = b.data || [];
         if (l.error) throw l.error; allLocations = l.data || [];
         
-        // ORDENAÇÃO
+        // ORDENAÇÃO A-Z
         fleet.sort((a,b) => a.name.localeCompare(b.name));
         people.sort((a,b) => a.name.localeCompare(b.name));
         allLocations.sort((a,b) => a.name.localeCompare(b.name));
 
-        bookings = (b.data||[]).map(x => ({
+        bookings = bookings.map(x => ({
             id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi
@@ -409,7 +404,7 @@
             const btn = document.createElement('button');
             btn.className = `loc-tab ${loc.name === activeLocation ? 'active' : ''}`;
             btn.innerText = loc.name;
-            btn.onclick = () => { activeLocation = loc.name; renderAdminLocTabs(); renderTimeline(); updateSelects(); renderList(); };
+            btn.onclick = () => { activeLocation = loc.name; renderAdminLocTabs(); refreshData(); };
             container.appendChild(btn);
         });
     }
@@ -434,7 +429,7 @@
         
         if(sCar) fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         
-        // FILTRO DE PESSOAS POR LOCAL
+        // FILTRO DE PESSOAS POR LOCAL ATIVO
         if(sDriver) {
             people.filter(p => p.location === activeLocation).forEach(p => sDriver.add(new Option(p.name, p.id)));
         }
@@ -457,9 +452,9 @@
 
         if(!end) return alert("Data de fim obrigatória.");
 
-        // BUSCAR NOME DA PESSOA SELECIONADA
+        // NOME DA PESSOA
         const driverId = getVal('inp_driver');
-        const selectedPerson = people.find(p => p.id == driverId);
+        const selectedPerson = people.find(p => String(p.id) === String(driverId));
         const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
 
         const rec = {
@@ -469,28 +464,35 @@
             start_time: start,
             end_time: end,
             location: activeLocation, 
-            user_name: driverName, // GRAVA O NOME DA PESSOA
+            user_name: driverName, // Nome da Pessoa
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
             client_addr: getVal('inp_client_addr'),
             client_bi: getVal('inp_client_bi')
         };
-        const id = getVal('booking_id');
+        
+        const idStr = getVal('booking_id');
+        const id = idStr ? parseInt(idStr) : null;
 
         if(!rec.start_time || !rec.vehicle_id) return alert("Preencha viatura e data de início.");
         
         showLoader(true);
         let error = null;
         try {
-            if(id) { const res = await clientDB.from('bookings').update(rec).eq('id', id); error=res.error; }
-            else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
+            if(id) { 
+                const res = await clientDB.from('bookings').update(rec).eq('id', id); 
+                error = res.error; 
+            } else { 
+                const res = await clientDB.from('bookings').insert(rec); 
+                error = res.error; 
+            }
         } catch(e) { error = e; }
 
         if(error) {
             alert("ERRO AO GRAVAR:\n" + (error.message || JSON.stringify(error)));
         } else { 
-            alert("Gravado com sucesso!"); 
+            alert(id ? "Agendamento ATUALIZADO" : "Agendamento CRIADO"); 
             resetForm(); await refreshData(); 
         }
         showLoader(false);
@@ -521,9 +523,13 @@
         
         if(currentUser.role === 'admin' && activeLocation !== b.location) {
             activeLocation = b.location;
-            renderAdminLocTabs(); renderTimeline(); updateSelects();
+            renderAdminLocTabs(); refreshData().then(() => doEdit(b));
+        } else {
+            doEdit(b);
         }
+    }
 
+    function doEdit(b) {
         nav('dash');
         document.getElementById('booking_id').value = b.id;
         document.getElementById('inp_vehicle').value = b.vehicleId;
@@ -553,7 +559,6 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
-        // CALCULO DA LINHA 'AGORA'
         const now = new Date();
         const diff = now - start;
         let nowLineHtml = '';
@@ -573,10 +578,7 @@
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
-            
-            // INSERIR A LINHA DO AGORA
             row += nowLineHtml;
-
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
             
             bookings.filter(b => b.vehicleId == c.id && b.location === activeLocation).forEach(b => {
