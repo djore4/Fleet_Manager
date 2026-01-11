@@ -3,158 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Mobile Pro</title>
+    <title>FleetWise Original Pro</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            /* PALETA ORIGINAL */
-            --primary: #017E84; --primary-dark: #015e63;
+            /* O TEU DESIGN ORIGINAL */
+            --primary: #017E84;
+            --primary-dark: #015e63;
             --secondary: #00A09D;
-            --bg: #F9FAFB; --text: #212529; --white: #ffffff;
-            --border: #DEE2E6; --danger: #DC3545;
+            --bg: #F9FAFB;
+            --text: #212529;
+            --white: #ffffff;
+            --border: #DEE2E6;
+            --danger: #DC3545;
+            --edit: #FFC107;
             --excel: #217346;
-            --gaia-color: #6f42c1; --porto-color: #007bff;
-            --weekend: #F2F4F7; --now-line: #DC3545;
+            --gaia-color: #6f42c1;
+            --porto-color: #007bff;
+            --weekend: #F2F4F7;
+            --now-line: #DC3545;
         }
 
-        * { box-sizing: border-box; font-family: "Inter", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 150px; font-size: 15px; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 150px; font-size: 14px; }
 
-        /* LOADER */
+        /* LOADING SPINNER */
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index: 6000; display:none; justify-content:center; align-items:center; flex-direction:column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* LOGIN SCREEN */
+        /* LOGIN SCREEN (Original Style) */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
-        .login-box h2 { color: var(--primary); margin-top: 0; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        .login-box button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
-        
+        .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
+        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 10px; }
+        .login-box input { margin-bottom: 15px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+        .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.3s; }
+        .login-box button:hover { background: var(--primary-dark); }
+
         /* APP HEADER */
         #app-content { display: none; }
         header { background: var(--primary); color: var(--white); padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
-        h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; font-weight: 700; }
-        #user-display { font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+        h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+        #user-display { font-size: 0.8rem; font-weight: normal; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
 
-        /* NAV OTIMIZADA PARA MOBILE */
-        nav { 
-            display: flex; 
-            justify-content: flex-start; /* Alinha à esquerda para permitir scroll */
-            background: #fff; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-            position: sticky; 
-            top: 50px; /* Ajustado à altura do header */
-            z-index: 90; 
-            overflow-x: auto; /* Permite deslizar o menu */
-            white-space: nowrap; /* Impede quebra de linha */
-            border-bottom: 1px solid var(--border);
-            -webkit-overflow-scrolling: touch;
-        }
-        nav::-webkit-scrollbar { display: none; } /* Esconde barra scroll */
+        /* NAV (Original Style) */
+        nav { display: flex; justify-content: center; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: sticky; top: 54px; z-index: 90; overflow-x: auto; border-bottom: 1px solid var(--border); }
+        nav button { padding: 12px 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
+        nav button:hover { color: var(--primary); background-color: #f8f9fa; }
+        nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #eef9f9;}
         
-        nav button { 
-            flex: 0 0 auto; /* Não encolhe */
-            padding: 12px 20px; 
-            border: none; 
-            background: transparent; 
-            cursor: pointer; 
-            font-weight: 600; 
-            color: #666; 
-            border-bottom: 3px solid transparent; 
-            transition: 0.2s; 
-            font-size: 0.9rem;
-        }
-        nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f9fa; }
-        
-        .role-restricted { display: none; }
-
-        /* LAYOUT & CARDS */
-        .section { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
-        .section.active { display: block; animation: fadeEffect 0.3s; }
-        @keyframes fadeEffect { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
-        .card { background: var(--white); padding: 20px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid var(--border); }
-
-        /* TABS DE LOCALIZAÇÃO */
+        /* TABS LOCATION */
         .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; }
-        .loc-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; background: #f1f3f5; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.9rem; }
+        .loc-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; background: #f1f3f5; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; }
         .loc-tab.active-gaia { background: #fff; color: var(--gaia-color); border-bottom-color: var(--gaia-color); }
         .loc-tab.active-porto { background: #fff; color: var(--porto-color); border-bottom-color: var(--porto-color); }
 
-        /* FORMS - MOBILE FIRST */
-        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        /* LAYOUT */
+        .view-section { display: none; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .view-section.active { display: block; }
+        .card { background: var(--white); padding: 20px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        
+        /* FORMS (Original Layout) */
+        .form-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; height: 42px; background: #fff; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; height: 40px; background: #fff; }
         
         #extra_fields { background-color: #f8f9fa; border: 1px solid var(--border); padding: 15px; border-radius: 4px; margin-bottom: 15px; display: none; }
         #extra_fields.show { display: block; }
 
         /* BUTTONS */
-        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem; color: white; height: 45px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; margin-top:5px; }
+        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.9rem; color: white; height: 40px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
         .btn-save { background: var(--primary); }
         .btn-cancel { background: #6c757d; margin-top: 10px; }
-        .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
-        
+        .btn-excel { background-color: var(--excel); color: white; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; height: 40px; }
+        .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; font-size: 0.9rem; color: #555; }
+
         /* TIMELINE (GANTT) */
-        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; -webkit-overflow-scrolling: touch; }
+        .timeline-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 45px; align-items: center; }
-        .gantt-corner { min-width: 100px; width: 100px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; }
+        .gantt-corner { min-width: 120px; width: 120px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 0.8rem; }
         .gantt-days { flex: 1; display: flex; height: 100%; }
-        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.8rem; height: 100%; }
+        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.85rem; height: 100%; }
         .gantt-day.month-start { border-left: 2px solid var(--border); background-color: #e9ecef !important; }
         .gantt-row { display: flex; min-width: 100%; height: 60px; border-bottom: 1px solid #eee; position: relative; }
-        .gantt-label { min-width: 100px; width: 100px; background: white; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 10; padding: 0 5px; font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .gantt-label { min-width: 120px; width: 120px; background: white; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 10; padding: 0 5px; font-size: 0.8rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
         .gantt-track { flex: 1; position: relative; height: 100%; display: flex; }
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
-        .gantt-bar { position: absolute; height: 32px; top: 14px; border-radius: 3px; color: white; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; padding: 0 5px; }
+        .gantt-bar { position: absolute; height: 34px; top: 13px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
-        /* LISTS & TABLES */
-        .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; margin-top:10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        th { background: #f8f9fa; font-weight: bold; text-align: left; }
+        /* LISTS */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); }
+        .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; background: white; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
+        th { background: #f8f9fa; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 0.8rem; }
         
-        .item-card { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .badge { padding: 3px 6px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.7rem; }
-        .loc-badge { padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; margin-right:5px; text-transform:uppercase; }
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; }
+        .loc-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; margin-right:5px; text-transform:uppercase; }
 
-        /* --- MOBILE FIXES (A MAGIA ESTÁ AQUI) --- */
+        /* MOBILE TWEAKS (Só para caber melhor, sem mudar o design) */
         @media (max-width: 768px) {
-            body { font-size: 14px; }
-            
-            /* Inputs empilhados verticalmente no mobile */
             .form-row { flex-direction: column; gap: 10px; }
-            
-            /* Ajustes Card */
-            .card { padding: 15px; margin-bottom: 10px; }
-            
-            /* Botões maiores */
-            .btn { font-size: 1rem; }
-            
-            /* Tabela Gantt mais compacta */
-            .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
-            .gantt-corner { width: 85px; min-width: 85px; }
-            
-            /* Filtros em coluna */
+            .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; }
             .filter-bar { flex-direction: column; }
+            .btn { width: 100%; margin-top:5px; }
         }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><p style="margin-top:15px;color:#666;font-weight:bold;">A carregar...</p></div>
+<div id="loader"><div class="spinner"></div><p style="margin-top:10px;color:#666;">A carregar...</p></div>
 
 <div id="login-screen">
     <div class="login-box">
-        <h2 style="color:var(--primary); margin-top:0">FleetWise</h2>
-        <p style="color:#666">Gestão de Viaturas</p>
+        <h2>FleetWise</h2>
+        <p style="color:#666">Gestão de Viaturas - Cloud</p>
         <input type="text" id="u" placeholder="Utilizador">
         <input type="password" id="p" placeholder="Senha">
         <button onclick="tentarLogin()">ENTRAR</button>
@@ -163,7 +132,7 @@
 
 <div id="app-content">
     <header>
-        <span>FleetWise</span>
+        <h1>Gestão de Viaturas</h1>
         <div style="display:flex; align-items:center; gap:10px;">
             <span id="user-info">...</span>
             <span style="font-size:0.8rem; cursor:pointer;" onclick="location.reload()">Sair ↪</span>
@@ -177,30 +146,54 @@
         <button onclick="nav('users')" id="nav-users">Equipa</button>
     </nav>
 
-    <div id="tab-dash" class="section active">
-        <div class="card">
-            <h3 style="margin-top:0; color:var(--primary)">Agendamento</h3>
-            <div id="msg-read-only" style="display:none; color:red; margin-bottom:10px; font-weight:bold; font-size:0.9rem;">⚠️ Apenas consulta.</div>
-            
-            <div id="form-booking">
-                <div class="loc-tabs" style="margin-bottom:15px; border:1px solid #ddd; border-radius:4px;">
-                    <button class="loc-tab active-gaia" id="btn-loc-gaia" onclick="changeLocation('Gaia')">Gaia</button>
-                    <button class="loc-tab" id="btn-loc-porto" onclick="changeLocation('Porto')">Porto</button>
-                </div>
+    <section id="tab-dash" class="view-section active">
+        <div class="loc-tabs">
+            <button class="loc-tab active-gaia" id="btn-loc-gaia" onclick="changeLocation('Gaia')">📍 GAIA</button>
+            <button class="loc-tab" id="btn-loc-porto" onclick="changeLocation('Porto')">📍 PORTO</button>
+        </div>
 
-                <div class="form-row">
-                    <div class="form-col"><label>Viatura</label><select id="inp_vehicle"></select></div>
-                    <div class="form-col"><label>Condutor</label><select id="inp_driver"></select></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-col"><label>Tipo</label><select id="inp_type"><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-col"><label>Início</label><input type="datetime-local" id="inp_start"></div>
-                    <div class="form-col"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
-                </div>
-                <button class="btn" onclick="saveBooking()">AGENDAR</button>
+        <div class="card" id="card-booking-form" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top:none;">
+            <input type="hidden" id="booking_id">
+            <div class="form-row">
+                <div class="form-col"><label>Viatura</label><select id="inp_vehicle"></select></div>
+                <div class="form-col"><label>Condutor</label><select id="inp_driver"></select></div>
             </div>
+            
+            <div class="form-row">
+                <div class="form-col"><label>Tipo</label>
+                    <select id="inp_type" onchange="toggleExtraFields()">
+                        <option value="" disabled selected>-- Selecione --</option>
+                        <option value="Test-drive">Test-drive</option>
+                        <option value="Empréstimo">Empréstimo</option>
+                        <option value="Serviço">Serviço</option>
+                        <option value="Indisponível">Indisponível</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="extra_fields">
+                <h4 style="margin:0 0 10px 0; color:var(--primary); border-bottom:1px solid #ddd; padding-bottom:5px;">Dados Cliente</h4>
+                <div class="form-row">
+                    <div class="form-col"><label>Nome</label><input id="inp_client_name"></div>
+                    <div class="form-col"><label>Telefone</label><input type="tel" id="inp_client_phone"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>NIF</label><input id="inp_client_nif"></div>
+                    <div class="form-col"><label>Morada</label><input id="inp_client_addr"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col"><label>Início</label><input type="datetime-local" id="inp_start"></div>
+                <div class="form-col"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
+            </div>
+            
+            <button class="btn btn-save" id="btn_save" onclick="saveBooking()">AGENDAR</button>
+            <button class="btn btn-cancel hidden" id="btn_cancel" onclick="resetForm()">CANCELAR</button>
+        </div>
+        
+        <div id="msg-read-only" style="display:none; padding:20px; text-align:center; color:gray; font-style:italic;">
+            Modo de consulta (Vendedor)
         </div>
 
         <div class="card" style="padding:0; overflow:hidden;">
@@ -220,60 +213,79 @@
                 <div id="gantt_body"></div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div id="tab-list" class="section">
+    <section id="tab-list" class="view-section">
         <div class="card">
-            <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="width:100%; margin-bottom:15px;">
-            <div id="list_container">A carregar...</div>
-        </div>
-    </div>
-
-    <div id="tab-conf" class="section">
-        <div class="card">
-            <h3 style="margin-top:0; color:var(--primary)">Viatura</h3>
-            <div class="form-row">
-                <div class="form-col"><input id="new_car_name" placeholder="Modelo"></div>
-                <div class="form-col"><input id="new_car_plate" placeholder="Matrícula"></div>
+            <div class="filter-bar">
+                <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="flex:2; padding:10px; border:1px solid #ddd;">
+                <select id="filter_loc" onchange="renderList()" style="flex:1; height:40px;"><option value="">Local: Todos</option><option>Gaia</option><option>Porto</option></select>
+                <button class="btn-excel" onclick="exportToExcel()">⬇ Excel</button>
             </div>
-            <button class="btn" onclick="addFleet()">Gravar</button>
+            <div class="table-wrap">
+                <table id="table_bookings">
+                    <thead><tr><th>Local</th><th>Viatura</th><th>Responsável</th><th>Tipo</th><th>Datas</th><th>Ações</th></tr></thead>
+                    <tbody id="list_body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-conf" class="view-section">
+        <div class="card" style="border-left:5px solid var(--primary)">
+            <h3>Gerir Viaturas</h3>
+            <div class="form-row">
+                <div class="form-col"><input id="f_name" placeholder="Modelo"></div>
+                <div class="form-col"><input id="f_plate" placeholder="Matrícula"></div>
+                <div class="form-col"><select id="f_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select></div>
+            </div>
+            <button class="btn btn-save" onclick="saveFleet()">Guardar Viatura</button>
         </div>
         <div class="card">
-            <h3 style="margin-top:0; color:var(--primary)">Pessoa</h3>
-            <div class="form-row">
-                <div class="form-col"><input id="new_person_name" placeholder="Nome"></div>
-                <div class="form-col"><input id="new_person_role" placeholder="Cargo"></div>
-            </div>
-            <button class="btn" onclick="addPerson()">Gravar</button>
+            <div class="table-wrap"><table width="100%"><thead><tr><th>Local</th><th>Viatura</th><th>Matrícula</th><th>Ações</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
         </div>
-    </div>
+        
+        <div class="card" style="border-left:5px solid var(--primary); margin-top:20px;">
+            <h3>Gerir Pessoas</h3>
+            <div class="form-row">
+                <div class="form-col"><input id="p_name" placeholder="Nome"></div>
+                <div class="form-col"><input id="p_role" placeholder="Cargo"></div>
+                <div class="form-col"><select id="p_loc"><option value="Gaia">Gaia</option><option value="Porto">Porto</option></select></div>
+            </div>
+            <button class="btn btn-save" onclick="savePeople()">Guardar Pessoa</button>
+        </div>
+        <div class="card">
+            <div class="table-wrap"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
+        </div>
+    </section>
 
-    <div id="tab-users" class="section">
-        <div class="card" style="border-left: 5px solid #FFC107;">
-            <h3 style="margin-top:0;">Novo Utilizador</h3>
+    <section id="tab-users" class="view-section">
+        <div class="card" style="border-left:5px solid #FFC107">
+            <h3>Gerir Equipa (Logins)</h3>
             <div class="form-row">
                 <div class="form-col"><label>Username</label><input id="new_u_name"></div>
                 <div class="form-col"><label>Senha</label><input id="new_u_pass"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-col"><label>Perfil</label>
                     <select id="new_u_role">
-                        <option value="vendedor">Vendedor (Consulta)</option>
+                        <option value="vendedor">Vendedor (Só Consulta)</option>
                         <option value="genius">Genius (Gestão)</option>
                         <option value="admin">Administrador</option>
                     </select>
                 </div>
             </div>
-            <button class="btn" onclick="addUser()">Criar Utilizador</button>
+            <button class="btn btn-save" onclick="addUser()">Criar Utilizador</button>
         </div>
         <div class="card">
-            <div id="users_list"></div>
+            <div class="table-wrap">
+                <table width="100%"><thead><tr><th>Username</th><th>Perfil</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table>
+            </div>
         </div>
-    </div>
+    </section>
+
 </div>
 
 <script>
-    // --- CONFIG ---
+    // --- 1. CONFIGURAÇÃO ---
     let clientDB = null;
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [];
@@ -281,7 +293,8 @@
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
     
-    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14' };
+    // VISUAL
+    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14', 'Indisponível':'#dc3545' };
     const locColors = { 'Gaia':'#6f42c1', 'Porto':'#007bff' };
     let activeLocation = 'Gaia';
     let currentDate = new Date();
@@ -289,7 +302,7 @@
 
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
-    // --- LOGIN ---
+    // --- 2. LOGIN ---
     async function tentarLogin() {
         if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Biblioteca não carregada.");
         const u = document.getElementById('u').value.trim();
@@ -325,7 +338,7 @@
         const navList = document.getElementById('nav-list');
         const navConf = document.getElementById('nav-conf');
         const navUsers = document.getElementById('nav-users');
-        const formBooking = document.getElementById('form-booking');
+        const formBooking = document.getElementById('card-booking-form');
         const msgReadOnly = document.getElementById('msg-read-only');
 
         navDash.style.display = 'block'; navList.style.display = 'block';
@@ -353,17 +366,24 @@
         if (p.error) throw p.error; people = p.data || [];
         if (b.error) throw b.error; bookings = b.data || [];
         
+        // Map bookings snake_case -> camelCase
+        bookings = bookings.map(x => ({
+            id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
+            type:x.type, start:x.start_time, end:x.end_time, location:x.location,
+            clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr
+        }));
+
         if (currentUser && currentUser.role === 'admin') {
             const u = await clientDB.from('app_users').select('*');
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
-        updateSelects(); renderList(); renderTimeline();
+        updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople();
     }
 
-    // --- NAVEGAÇÃO ---
+    // --- 3. NAVEGAÇÃO ---
     function nav(id) {
-        document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(e => e.classList.remove('active'));
         document.getElementById('tab-'+id).classList.add('active');
         const btn = document.getElementById('nav-'+id);
@@ -386,7 +406,7 @@
         people.forEach(p => sDriver.add(new Option(p.name, p.id)));
     }
 
-    // --- AÇÕES ---
+    // --- 4. AÇÕES ---
     async function saveBooking() {
         const rec = {
             vehicle_id: document.getElementById('inp_vehicle').value,
@@ -395,49 +415,56 @@
             start_time: document.getElementById('inp_start').value,
             end_time: document.getElementById('inp_end').value,
             location: activeLocation,
-            user_name: currentUser.username
+            user_name: currentUser.username,
+            client_name: document.getElementById('inp_client_name').value,
+            client_phone: document.getElementById('inp_client_phone').value,
+            client_nif: document.getElementById('inp_client_nif').value,
+            client_addr: document.getElementById('inp_client_addr').value
         };
-        if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha tudo!");
+        const id = document.getElementById('booking_id').value;
+
+        if(!rec.start_time || document.getElementById('inp_vehicle').value.includes('--')) return alert("Preencha tudo.");
         
         showLoader(true);
-        const { error } = await clientDB.from('bookings').insert(rec);
-        if(error) alert("Erro: " + error.message);
-        else { alert("Agendado!"); await refreshData(); nav('list'); }
+        let error = null;
+        if(id) { const res = await clientDB.from('bookings').update(rec).eq('id', id); error=res.error; }
+        else { const res = await clientDB.from('bookings').insert(rec); error=res.error; }
+
+        if(error) alert(error.message);
+        else { alert("Gravado!"); resetForm(); await refreshData(); }
         showLoader(false);
     }
 
-    function renderList() {
-        const div = document.getElementById('list_container');
-        if(bookings.length === 0) { div.innerHTML = "Sem agendamentos."; return; }
-        
-        bookings.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
-        let html = '';
-        bookings.forEach(b => {
-            const car = fleet.find(f => f.id == b.vehicle_id) || {name:'?', plate:'?'};
-            const person = people.find(p => p.id == b.user_id) || {name:'?'};
-            const date = new Date(b.start_time).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-            
-            let delBtn = '';
-            if (currentUser.role === 'admin' || currentUser.role === 'genius') {
-                delBtn = `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>`;
-            }
-
-            html += `<div class="item-card">
-                <div>
-                    <span class="loc-badge" style="background:${locColors[b.location] || '#999'}">${b.location}</span>
-                    <strong style="color:var(--primary)">${car.plate}</strong><br>
-                    <span style="font-size:0.9rem">👤 ${person.name}</span><br>
-                    <span style="font-size:0.85rem; color:#888;">📅 ${date}</span> 
-                    <span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span>
-                </div>
-                ${delBtn}
-            </div>`;
-        });
-        div.innerHTML = html;
+    function resetForm() {
+        ['booking_id','inp_vehicle','inp_user','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr'].forEach(i=>document.getElementById(i).value='');
+        document.getElementById('btn_save').innerText = "AGENDAR";
+        document.getElementById('btn_cancel').classList.add('hidden');
+        document.getElementById('extra_fields').style.display='none';
     }
 
-    async function delBooking(id) {
-        if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); }
+    function toggleExtraFields() { 
+        const t = document.getElementById('inp_type').value; 
+        if(t==='Test-drive'||t==='Empréstimo') document.getElementById('extra_fields').style.display='block'; 
+        else document.getElementById('extra_fields').style.display='none';
+    }
+
+    function editBooking(id) {
+        if(currentUser.role === 'vendedor') return;
+        const b = bookings.find(x => x.id == id);
+        changeLocation(b.location); nav('dash');
+        document.getElementById('booking_id').value = b.id;
+        document.getElementById('inp_vehicle').value = b.vehicleId;
+        document.getElementById('inp_user').value = b.userId;
+        document.getElementById('inp_type').value = b.type;
+        document.getElementById('inp_start').value = new Date(new Date(b.start).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
+        document.getElementById('inp_end').value = new Date(new Date(b.end).getTime() - (new Date().getTimezoneOffset()*60000)).toISOString().slice(0,16);
+        document.getElementById('inp_client_name').value = b.clientName||'';
+        document.getElementById('inp_client_phone').value = b.clientPhone||'';
+        document.getElementById('inp_client_nif').value = b.clientNif||'';
+        document.getElementById('inp_client_addr').value = b.clientAddr||'';
+        toggleExtraFields();
+        document.getElementById('btn_save').innerText = "ATUALIZAR";
+        document.getElementById('btn_cancel').classList.remove('hidden');
     }
 
     // --- TIMELINE ---
@@ -450,7 +477,8 @@
         let htmlH = `<div class="gantt-corner">VIATURA</div><div class="gantt-days">`;
         for(let i=0; i<days; i++) {
             let d = new Date(start); d.setDate(d.getDate()+i);
-            htmlH += `<div class="gantt-day" style="min-width:${zoomLevel}px">${d.getDate()}</div>`;
+            let bg = (d.getDay()===0||d.getDay()===6) ? 'background:#f9f9f9' : '';
+            htmlH += `<div class="gantt-day" style="min-width:${zoomLevel}px; ${bg}">${d.getDate()}</div>`;
         }
         header.innerHTML = htmlH + `</div>`;
 
@@ -459,30 +487,78 @@
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
             
-            bookings.filter(b => b.vehicle_id == c.id && b.location === activeLocation).forEach(b => {
-                let s = new Date(b.start_time), e = new Date(b.end_time);
+            bookings.filter(b => b.vehicleId == c.id && b.location === activeLocation).forEach(b => {
+                let s = new Date(b.start), e = new Date(b.end);
                 let left = ((s - start) / msDay) * zoomLevel;
                 let width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
-                row += `<div class="gantt-bar" style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${b.user_name}">${b.user_name}</div>`;
+                let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
+                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${b.clientName||b.userName}">${b.clientName||b.userName}</div>`;
             });
             body.innerHTML += row + `</div></div>`;
         });
     }
 
-    // --- CRUD ADMIN ---
-    async function addFleet() { const n=document.getElementById('new_car_name').value, p=document.getElementById('new_car_plate').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:'Gaia'}); await refreshData(); showLoader(false); } }
-    async function addPerson() { const n=document.getElementById('new_person_name').value, r=document.getElementById('new_person_role').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:'Gaia'}); await refreshData(); showLoader(false); } }
-    async function addUser() { const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value; if(u&&p){ showLoader(true); await clientDB.from('app_users').insert({username:u,password:p,role:r}); await refreshData(); showLoader(false); alert("User criado!"); } }
-    function renderUsersList() { const d=document.getElementById('users_list'); d.innerHTML=''; appUsers.forEach(u => d.innerHTML+=`<div class="item-card"><span>${u.username} (${u.role})</span><button class="action-btn" style="color:red" onclick="delUser(${u.id})">X</button></div>`); }
-    async function delUser(id) { if(confirm("Apagar?")) { await clientDB.from('app_users').delete().eq('id',id); await refreshData(); } }
+    // --- LISTA ---
+    function renderList() {
+        const tb = document.getElementById('list_body'); tb.innerHTML = '';
+        const filter = document.getElementById('filter_text').value.toLowerCase();
+        
+        bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
+        bookings.forEach(b => {
+            const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
+            const person = people.find(p => p.id == b.userId) || {name:'?'};
+            if(!car.plate.toLowerCase().includes(filter)) return;
 
-    // UTILS
+            const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+            let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
+            let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
+
+            tb.innerHTML += `<tr>
+                <td><span class="loc-badge" style="background:${locColors[b.location] || '#999'}">${b.location}</span></td>
+                <td><b>${car.plate}</b><br><small>${car.name}</small></td>
+                <td>${person.name}</td>
+                <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
+                <td><small>${date}</small></td>
+                <td class="text-right">${editBtn} ${delBtn}</td>
+            </tr>`;
+        });
+    }
+
+    async function delBooking(id) {
+        if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); }
+    }
+
+    // --- UTILITARIOS ---
     function shiftTime(d) { currentDate.setDate(currentDate.getDate()+d); renderTimeline(); }
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
+    function exportToExcel() {
+        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente\n";
+        bookings.forEach(b => {
+            const car = fleet.find(f => f.id == b.vehicleId) || {name:''};
+            csv += `${b.location};${car.plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
+    }
+
+    // --- CRUD FROTA/PESSOAS/USERS ---
+    async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
+    async function addPerson() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
     
-    // Dates
+    async function addUser() { 
+        const u=document.getElementById('new_u_name').value, p=document.getElementById('new_u_pass').value, r=document.getElementById('new_u_role').value; 
+        if(u&&p){ showLoader(true); await clientDB.from('app_users').insert({username:u,password:p,role:r}); await refreshData(); showLoader(false); alert("User criado!"); } 
+    }
+    
+    function renderFleet() { const t=document.getElementById('fleet_body'); t.innerHTML=''; fleet.forEach(c=>t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td><button onclick="delRec('fleet',${c.id})">X</button></td></tr>`); }
+    function renderPeople() { const t=document.getElementById('people_body'); t.innerHTML=''; people.forEach(p=>t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td><button onclick="delRec('people',${p.id})">X</button></td></tr>`); }
+    function renderUsersList() { const t=document.getElementById('users_list'); t.innerHTML=''; appUsers.forEach(u=>t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td><button onclick="delRec('app_users',${u.id})">X</button></td></tr>`); }
+    
+    async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
+
+    // Init Dates
     const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
     document.getElementById('inp_start').value = now.toISOString().slice(0,16);
     now.setHours(now.getHours()+2);
