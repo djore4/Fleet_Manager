@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v51.1</title>
+    <title>FleetWise Pro - v52 (Robustez)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -15,6 +15,7 @@
             --border: #DEE2E6; --danger: #DC3545; --excel: #217346;
             --weekend: #F2F4F7; --now-line: #DC3545;
             --gaia-color: #6f42c1; --porto-color: #007bff;
+            --archived: #adb5bd; /* Cor cinza para arquivados */
         }
 
         * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -86,8 +87,6 @@
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
-        
-        /* LINHA AGORA */
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LISTS */
@@ -98,6 +97,10 @@
         th { background: #f8f9fa; font-weight: 700; text-align: left; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
         .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
+        
+        /* ESTILO PARA ARQUIVADOS */
+        .archived-row { opacity: 0.6; background-color: #f9f9f9; }
+        .archived-row td { text-decoration: line-through; color: #999; }
 
         @media (max-width: 768px) {
             .form-row { flex-direction: column; gap: 10px; }
@@ -226,7 +229,7 @@
                 <select id="f_loc"></select>
             </div>
             <button class="btn btn-save" onclick="saveFleet()">Adicionar Viatura</button>
-            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Modelo</th><th>Matrícula</th><th>Ações</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
+            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Modelo</th><th>Matrícula</th><th>Estado</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
         </div>
     </section>
 
@@ -238,7 +241,7 @@
                 <select id="p_loc"></select>
             </div>
             <button class="btn btn-save" style="background:var(--secondary)" onclick="savePeople()">Adicionar Pessoa</button>
-            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
+            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Estado</th></tr></thead><tbody id="people_body"></tbody></table></div>
         </div>
     </section>
 
@@ -246,7 +249,6 @@
         <div class="card" style="border-left:5px solid #FFC107">
             <h3>Gestão de Equipa</h3>
             <input type="hidden" id="u_id_edit"> 
-            
             <div class="form-row">
                 <div class="form-col"><label>Username</label><input id="new_u_name" placeholder="Ex: joao"></div>
                 <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Vazio para manter atual"></div>
@@ -258,17 +260,11 @@
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div class="form-col"><label>Local Base</label>
-                    <select id="new_u_loc"></select>
-                </div>
+                <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
             </div>
-            
             <button class="btn btn-save" id="btn_save_user" style="background:#FFC107; color:black" onclick="saveUser()">Criar / Atualizar</button>
             <button class="btn btn-cancel hidden" id="btn_cancel_user" onclick="resetUserForm()">Cancelar Edição</button>
-
-            <div class="table-wrap" style="margin-top:20px;">
-                <table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table>
-            </div>
+            <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
         </div>
     </section>
 
@@ -279,9 +275,7 @@
                 <div class="form-col"><input id="new_loc_name" placeholder="Nome do Local (Ex: Lisboa)"></div>
                 <div class="form-col"><button class="btn btn-save" style="background:#333" onclick="addLocation()">Adicionar Local</button></div>
             </div>
-            <div class="table-wrap">
-                <table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table>
-            </div>
+            <div class="table-wrap"><table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table></div>
         </div>
     </section>
 </div>
@@ -387,10 +381,13 @@
         people.sort((a,b) => a.name.localeCompare(b.name));
         allLocations.sort((a,b) => a.name.localeCompare(b.name));
 
+        // SNAPSHOT: Se tiver static_plate (snapshot), usa. Senão usa o plate da relação.
         bookings = bookings.map(x => ({
-            id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
+            id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, 
+            userName:x.user_name, // Nome da Pessoa no momento da reserva
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
-            clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi
+            clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
+            staticPlate: x.static_plate, staticModel: x.static_model // Snapshot
         }));
 
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'gerente')) {
@@ -405,18 +402,16 @@
         
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
         
-        // INICIAR COM DATAS CORRETAS
         setDefaultDates();
     }
 
     function setDefaultDates() {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('inp_start').value = now.toISOString().slice(0,16);
-        
+        if(document.getElementById('inp_start')) document.getElementById('inp_start').value = now.toISOString().slice(0,16);
         const end = new Date(now);
         end.setHours(end.getHours() + 1);
-        document.getElementById('inp_end').value = end.toISOString().slice(0,16);
+        if(document.getElementById('inp_end')) document.getElementById('inp_end').value = end.toISOString().slice(0,16);
     }
 
     function nav(id) {
@@ -458,11 +453,11 @@
         const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         
-        if(sCar) fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
+        // MOSTRAR APENAS ATIVOS NO DROPDOWN
+        if(sCar) fleet.filter(c => c.location === activeLocation && c.active !== false).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         
-        // FILTRO DE PESSOAS POR LOCAL ATIVO
         if(sDriver) {
-            people.filter(p => p.location === activeLocation).forEach(p => sDriver.add(new Option(p.name, p.id)));
+            people.filter(p => p.location === activeLocation && p.active !== false).forEach(p => sDriver.add(new Option(p.name, p.id)));
         }
     }
 
@@ -486,18 +481,24 @@
         // NOME DA PESSOA
         const driverId = getVal('inp_driver');
         const selectedPerson = people.find(p => String(p.id) === String(driverId));
-        // Se for Test-drive, usa o nome do cliente se existir, senão usa o nome do vendedor.
-        // Se for Emprestimo/Serviço, usa o nome da pessoa da equipa selecionada.
         const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
 
+        // SNAPSHOT DA VIATURA
+        const carId = getVal('inp_vehicle');
+        const selectedCar = fleet.find(f => String(f.id) === String(carId));
+        const staticPlate = selectedCar ? selectedCar.plate : '';
+        const staticModel = selectedCar ? selectedCar.name : '';
+
         const rec = {
-            vehicle_id: getVal('inp_vehicle'),
+            vehicle_id: carId,
             user_id: driverId,
             type: type,
             start_time: start,
             end_time: end,
             location: activeLocation, 
-            user_name: driverName, // Nome da Pessoa Escolhida
+            user_name: driverName,
+            static_plate: staticPlate, // Snapshot
+            static_model: staticModel, // Snapshot
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
@@ -540,9 +541,8 @@
         document.getElementById('extra_fields').style.display='none';
         document.getElementById('inp_type').value = "";
         
-        // RESET DATAS E DROPDOWNS
         setDefaultDates();
-        updateSelects(); // Reseta os selects para "-- Selecione --"
+        updateSelects(); 
     }
 
     function toggleExtraFields() { 
@@ -596,7 +596,6 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
-        // CALCULO DA LINHA 'AGORA'
         const now = new Date();
         const diff = now - start;
         let nowLineHtml = '';
@@ -615,6 +614,7 @@
 
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
+            // MOSTRAR MESMO SE ESTIVER ARQUIVADO (PARA HISTORICO)
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
             row += nowLineHtml;
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
@@ -625,7 +625,10 @@
                 let width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                let label = (b.type === 'Test-drive' || b.type === 'Empréstimo') ? (b.clientName || 'Cliente') : b.userName;
+                
+                // NOME NA BARRA (TEST-DRIVE = CLIENTE, OUTROS = RESPONSAVEL)
+                let label = (b.type === 'Test-drive') ? (b.clientName || 'Cliente') : b.userName;
+                
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">${label}</div>`;
             });
             body.innerHTML += row + `</div></div>`;
@@ -642,11 +645,18 @@
         bookings.forEach(b => {
             if(b.location !== activeLocation && currentUser.role !== 'admin') return;
 
-            const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
-            const person = people.find(p => p.id == b.userId) || {name:'?'};
+            // TENTAR USAR SNAPSHOT, FALLBACK PARA RELAÇÃO ATUAL
+            let plate = b.staticPlate;
+            let model = b.staticModel;
             
+            if(!plate) {
+                const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
+                plate = car.plate;
+                model = car.name;
+            }
+
             if(filterType && b.type !== filterType) return;
-            const txt = (car.plate + car.name + (b.userName||'') + (b.clientName||'')).toLowerCase();
+            const txt = (plate + model + (b.userName||'') + (b.clientName||'')).toLowerCase();
             if(!txt.includes(filter)) return;
 
             const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
@@ -660,7 +670,7 @@
 
             tb.innerHTML += `<tr>
                 <td><b>${b.location}</b></td>
-                <td><b>${car.plate}</b><br><small>${car.name}</small></td>
+                <td><b>${plate}</b><br><small>${model}</small></td>
                 <td>${b.userName} ${clientData}</td>
                 <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
                 <td><small>${date}</small></td>
@@ -673,6 +683,34 @@
 
     async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     async function savePeople() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
+    
+    // SOFT DELETE / ARQUIVAR
+    async function toggleActive(table, id, currentStatus) {
+        if(confirm(currentStatus ? "Arquivar registo? (Deixará de aparecer nas opções)" : "Restaurar registo?")) {
+            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id);
+            await refreshData();
+        }
+    }
+
+    function renderFleet() { 
+        const t=document.getElementById('fleet_body'); if(t) { t.innerHTML=''; 
+        fleet.filter(c=>c.location === activeLocation).forEach(c => {
+            const rowClass = c.active === false ? 'archived-row' : '';
+            const btnIcon = c.active === false ? '♻️' : '📂';
+            t.innerHTML+=`<tr class="${rowClass}"><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td>
+            <td style="text-align:right"><button onclick="toggleActive('fleet',${c.id}, ${c.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
+        }); } 
+    }
+    
+    function renderPeople() { 
+        const t=document.getElementById('people_body'); if(t) { t.innerHTML=''; 
+        people.filter(p=>p.location === activeLocation).forEach(p => {
+            const rowClass = p.active === false ? 'archived-row' : '';
+            const btnIcon = p.active === false ? '♻️' : '📂';
+            t.innerHTML+=`<tr class="${rowClass}"><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td>
+            <td style="text-align:right"><button onclick="toggleActive('people',${p.id}, ${p.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
+        }); } 
+    }
     
     async function saveUser() { 
         const id = document.getElementById('u_id_edit').value;
@@ -730,8 +768,6 @@
     }
     function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
 
-    function renderFleet() { const t=document.getElementById('fleet_body'); if(t) { t.innerHTML=''; fleet.forEach(c=>t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td style="text-align:right"><button onclick="delRec('fleet',${c.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
-    function renderPeople() { const t=document.getElementById('people_body'); if(t) { t.innerHTML=''; people.forEach(p=>t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right"><button onclick="delRec('people',${p.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
     function renderUsersList() { 
         const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u => { t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`; }); } 
     }
@@ -744,14 +780,18 @@
     function exportToExcel() {
         let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada\n";
         bookings.forEach(b => {
-            const car = fleet.find(f => f.id == b.vehicleId) || {name:''};
-            csv += `${b.location};${car.plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''}\n`;
+            // Tentar usar snapshot primeiro
+            let plate = b.staticPlate;
+            if(!plate) {
+                const car = fleet.find(f => f.id == b.vehicleId) || {name:''};
+                plate = car.plate;
+            }
+            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
     }
 
-    // INIT NO FIM PARA GARANTIR LIMPEZA
     const initDates = () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
