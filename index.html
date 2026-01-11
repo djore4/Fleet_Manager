@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v53</title>
+    <title>FleetWise Pro - v55 (Mobile Ready)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -33,7 +33,7 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
         .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* HEADER */
+        /* HEADER (DESKTOP DEFAULT) */
         #app-content { display: none; }
         .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -52,7 +52,7 @@
         .view-section.active { display: block; animation: fadeIn 0.3s; }
         .card { background: var(--white); padding: 25px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
 
-        /* FORMS */
+        /* FORMS (DESKTOP DEFAULT) */
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; }
@@ -100,11 +100,29 @@
         .archived-row { opacity: 0.6; background-color: #f9f9f9; }
         .archived-row td { text-decoration: line-through; color: #999; }
 
+        /* ================= MOBILE RULES ================= */
         @media (max-width: 768px) {
+            /* 1. Formulários em coluna única (Inputs um debaixo do outro) */
             .form-row { flex-direction: column; gap: 10px; }
+            
+            /* 2. Menu Navegação com Scroll (para caberem todos os botões) */
+            nav { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            nav button { flex: 0 0 auto; margin-right: 5px; } /* Botões não encolhem */
+
+            /* 3. Cards sem margem lateral (aproveitar ecrã todo) */
+            .view-section { padding: 10px; }
+            .card { padding: 15px; }
+
+            /* 4. Timeline Ajustada */
             .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; }
+            
+            /* 5. Filtros em coluna */
             .filter-bar { flex-direction: column; }
-            nav { justify-content: flex-start; }
+            
+            /* 6. Header mais compacto */
+            header { padding: 10px; }
+            h1 { font-size: 1rem; }
+            #user-display { font-size: 0.7rem; padding: 4px 8px; }
         }
     </style>
 </head>
@@ -357,6 +375,7 @@
     }
 
     async function refreshData() {
+        // Limpar arrays para evitar duplicados
         fleet = []; people = []; bookings = []; allLocations = [];
 
         const [f, p, b, l] = await Promise.all([
@@ -371,15 +390,18 @@
         if (b.error) throw b.error; bookings = b.data || [];
         if (l.error) throw l.error; allLocations = l.data || [];
         
+        // ORDENAÇÃO A-Z
         fleet.sort((a,b) => a.name.localeCompare(b.name));
         people.sort((a,b) => a.name.localeCompare(b.name));
         allLocations.sort((a,b) => a.name.localeCompare(b.name));
 
+        // SNAPSHOT: Se tiver static_plate (snapshot), usa. Senão usa o plate da relação.
         bookings = bookings.map(x => ({
-            id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
+            id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, 
+            userName:x.user_name, // Nome da Pessoa no momento da reserva
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
-            staticPlate: x.static_plate, staticModel: x.static_model
+            staticPlate: x.static_plate, staticModel: x.static_model // Snapshot
         }));
 
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'gerente')) {
@@ -394,6 +416,7 @@
         
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
         
+        // INICIAR COM DATAS CORRETAS
         setDefaultDates();
     }
 
@@ -445,6 +468,7 @@
         const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         
+        // MOSTRAR APENAS ATIVOS NO DROPDOWN
         if(sCar) fleet.filter(c => c.location === activeLocation && c.active !== false).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         
         if(sDriver) {
@@ -469,10 +493,12 @@
 
         if(!end) return alert("Data de fim obrigatória.");
 
+        // NOME DA PESSOA
         const driverId = getVal('inp_driver');
         const selectedPerson = people.find(p => String(p.id) === String(driverId));
         const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
 
+        // SNAPSHOT DA VIATURA
         const carId = getVal('inp_vehicle');
         const selectedCar = fleet.find(f => String(f.id) === String(carId));
         const staticPlate = selectedCar ? selectedCar.plate : '';
@@ -486,8 +512,8 @@
             end_time: end,
             location: activeLocation, 
             user_name: driverName,
-            static_plate: staticPlate,
-            static_model: staticModel,
+            static_plate: staticPlate, // Snapshot
+            static_model: staticModel, // Snapshot
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
@@ -531,7 +557,7 @@
         document.getElementById('inp_type').value = "";
         
         setDefaultDates();
-        updateSelects(); 
+        updateSelects(); // Reseta os selects para "-- Selecione --"
     }
 
     function toggleExtraFields() { 
@@ -585,6 +611,7 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
+        // CALCULO DA LINHA 'AGORA'
         const now = new Date();
         const diff = now - start;
         let nowLineHtml = '';
@@ -603,6 +630,7 @@
 
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
+            // MOSTRAR MESMO SE ESTIVER ARQUIVADO (PARA HISTORICO)
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
             row += nowLineHtml;
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
@@ -614,6 +642,7 @@
                 if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
                 
+                // NOME NA BARRA (TEST-DRIVE = CLIENTE, OUTROS = RESPONSAVEL)
                 let label = (b.type === 'Test-drive') ? (b.clientName || 'Cliente') : b.userName;
                 
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">${label}</div>`;
@@ -632,8 +661,10 @@
         bookings.forEach(b => {
             if(b.location !== activeLocation && currentUser.role !== 'admin') return;
 
+            // TENTAR USAR SNAPSHOT, FALLBACK PARA RELAÇÃO ATUAL
             let plate = b.staticPlate;
             let model = b.staticModel;
+            
             if(!plate) {
                 const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
                 plate = car.plate;
@@ -668,7 +699,7 @@
 
     async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     
-    // --- EDIÇÃO DE PESSOAS ---
+    // --- EDIÇÃO DE PESSOAS (ATUALIZADA) ---
     async function savePeople() { 
         const id = document.getElementById('p_id_edit').value;
         const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; 
@@ -703,6 +734,7 @@
         document.getElementById('btn_cancel_person').classList.add('hidden');
     }
 
+    // SOFT DELETE / ARQUIVAR
     async function toggleActive(table, id, currentStatus) {
         if(confirm(currentStatus ? "Arquivar registo? (Deixará de aparecer nas opções)" : "Restaurar registo?")) {
             await clientDB.from(table).update({ active: !currentStatus }).eq('id', id);
@@ -785,10 +817,10 @@
         const name = document.getElementById('new_loc_name').value;
         if(name) { showLoader(true); await clientDB.from('locations').insert({name:name}); await refreshData(); document.getElementById('new_loc_name').value=''; showLoader(false); }
     }
-    function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
+    function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn">✕</button></td></tr>`); } }
 
     function renderUsersList() { 
-        const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u => { t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`; }); } 
+        const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u => { t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button><button onclick="delRec('app_users',${u.id})" class="action-btn">✕</button></td></tr>`; }); } 
     }
     
     async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
