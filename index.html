@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v38</title>
+    <title>FleetWise Pro - v39</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            /* DESIGN ODOO STYLE */
+            /* ODOO STYLE PALETTE */
             --primary: #017E84; --primary-dark: #015e63;
             --secondary: #00A09D;
             --bg: #F9FAFB; --text: #212529; --white: #ffffff;
             --border: #DEE2E6; --danger: #DC3545; --excel: #217346;
-            --gaia-color: #6f42c1; --porto-color: #007bff;
             --weekend: #F2F4F7; --now-line: #DC3545;
         }
 
@@ -69,6 +68,12 @@
         .btn-excel { background-color: var(--excel); color: white; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; height: 40px; display:flex; align-items:center; justify-content:center; gap:5px;}
         .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
 
+        /* LOCATION TABS (Só para Admin) */
+        .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; margin-bottom: 20px; }
+        .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f8f9fa; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; }
+        .loc-tab:hover { background: #e9ecef; }
+        .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
+
         /* TIMELINE */
         .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
@@ -93,11 +98,11 @@
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
         .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
 
-        /* Current Location Indicator */
+        /* Indicator for non-admins */
         .dash-loc-indicator {
             background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px;
             border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb;
-            text-transform: uppercase; letter-spacing: 1px;
+            text-transform: uppercase; letter-spacing: 1px; display: none;
         }
 
         @media (max-width: 768px) {
@@ -140,7 +145,12 @@
     </div>
 
     <section id="tab-dash" class="view-section active">
-        <div class="dash-loc-indicator">📍 <span id="lbl_current_loc">...</span></div>
+        <div id="admin-loc-selector" class="loc-tabs" style="display:none;">
+            </div>
+
+        <div id="fixed-loc-indicator" class="dash-loc-indicator">
+            📍 <span id="lbl_current_loc">...</span>
+        </div>
 
         <div class="card" id="card-booking-form" style="border-top:none;">
             <input type="hidden" id="booking_id">
@@ -313,7 +323,19 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('user_label').innerText = `${user.username} (${user.role})`;
-            document.getElementById('lbl_current_loc').innerText = activeLocation;
+            
+            // Lógica de visualização de locais
+            if(currentUser.role === 'admin') {
+                // Admin vê tabs
+                document.getElementById('admin-loc-selector').style.display = 'flex';
+                document.getElementById('fixed-loc-indicator').style.display = 'none';
+                renderAdminLocTabs();
+            } else {
+                // Outros veem texto fixo
+                document.getElementById('admin-loc-selector').style.display = 'none';
+                document.getElementById('fixed-loc-indicator').style.display = 'block';
+                document.getElementById('lbl_current_loc').innerText = activeLocation;
+            }
 
             aplicarPermissoes();
 
@@ -333,22 +355,28 @@
         const formBooking = document.getElementById('card-booking-form');
         const msgReadOnly = document.getElementById('msg-read-only');
 
-        // Reset
-        navFleet.style.display = 'none';
-        navPeople.style.display = 'none';
-        navUsers.style.display = 'none';
-        navLocs.style.display = 'none';
-        formBooking.style.display = 'block'; 
-        msgReadOnly.style.display = 'none';
+        if(navFleet) navFleet.style.display = 'none';
+        if(navPeople) navPeople.style.display = 'none';
+        if(navUsers) navUsers.style.display = 'none';
+        if(navLocs) navLocs.style.display = 'none';
+        if(formBooking) formBooking.style.display = 'block'; 
+        if(msgReadOnly) msgReadOnly.style.display = 'none';
 
         if (role === 'vendedor') {
-            formBooking.style.display = 'none'; msgReadOnly.style.display = 'block';
+            if(formBooking) formBooking.style.display = 'none'; 
+            if(msgReadOnly) msgReadOnly.style.display = 'block';
         } else if (role === 'genius') {
-            navFleet.style.display = 'block'; navPeople.style.display = 'block';
+            if(navFleet) navFleet.style.display = 'block';
+            if(navPeople) navPeople.style.display = 'block';
         } else if (role === 'gerente') {
-            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block';
+            if(navFleet) navFleet.style.display = 'block';
+            if(navPeople) navPeople.style.display = 'block';
+            if(navUsers) navUsers.style.display = 'block';
         } else if (role === 'admin') {
-            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block'; navLocs.style.display = 'block';
+            if(navFleet) navFleet.style.display = 'block';
+            if(navPeople) navPeople.style.display = 'block';
+            if(navUsers) navUsers.style.display = 'block';
+            if(navLocs) navLocs.style.display = 'block';
         }
         nav('dash');
     }
@@ -372,19 +400,17 @@
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi
         }));
 
-        // Admin e Gerente podem ver lista de users
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'gerente')) {
             let query = clientDB.from('app_users').select('*');
-            // Gerente só vê sua equipa
-            if (currentUser.role === 'gerente') {
-                query = query.eq('location', currentUser.location);
-            }
+            if (currentUser.role === 'gerente') { query = query.eq('location', currentUser.location); }
             const u = await query;
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
         populateLocationSelects();
         updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList();
+        
+        if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
     }
 
     // --- 3. NAVEGAÇÃO ---
@@ -397,6 +423,25 @@
         if(id === 'dash') renderTimeline();
     }
 
+    // LÓGICA DE ADMIN MUDAR DE LOCAL
+    function renderAdminLocTabs() {
+        const container = document.getElementById('admin-loc-selector');
+        container.innerHTML = '';
+        allLocations.forEach(loc => {
+            const btn = document.createElement('button');
+            btn.className = `loc-tab ${loc.name === activeLocation ? 'active' : ''}`;
+            btn.innerText = loc.name;
+            btn.onclick = () => {
+                activeLocation = loc.name;
+                renderAdminLocTabs();
+                renderTimeline();
+                updateSelects();
+                renderList(); // Atualiza a lista também para o admin ver o local certo
+            };
+            container.appendChild(btn);
+        });
+    }
+
     function populateLocationSelects() {
         const selects = ['f_loc', 'p_loc', 'new_u_loc'];
         selects.forEach(id => {
@@ -405,7 +450,14 @@
                 const currentVal = el.value; 
                 el.innerHTML = '';
                 allLocations.forEach(loc => el.add(new Option(loc.name, loc.name)));
-                if(currentVal && Array.from(el.options).some(o => o.value === currentVal)) el.value = currentVal;
+                
+                // Se for gerente, força o local dele
+                if(currentUser.role === 'gerente') {
+                    el.value = currentUser.location;
+                    el.disabled = true; // Não pode mudar
+                } else if(currentVal && Array.from(el.options).some(o => o.value === currentVal)) {
+                    el.value = currentVal;
+                }
             }
         });
     }
@@ -468,6 +520,14 @@
         const b = bookings.find(x => x.id == id);
         if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Não pode editar de outro local.");
         
+        // Se for admin, muda o local ativo para o do booking para poder editar
+        if(currentUser.role === 'admin' && activeLocation !== b.location) {
+            activeLocation = b.location;
+            renderAdminLocTabs();
+            renderTimeline();
+            updateSelects();
+        }
+
         nav('dash');
         document.getElementById('booking_id').value = b.id;
         document.getElementById('inp_vehicle').value = b.vehicleId;
@@ -541,7 +601,7 @@
             if(!txt.includes(filter)) return;
 
             const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-            let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
+            let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius' || currentUser.role === 'gerente') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
             let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
 
             let clientData = '';
@@ -606,6 +666,8 @@
         document.getElementById('new_u_loc').value = user.location;
         document.getElementById('btn_save_user').innerText = "Atualizar User";
         document.getElementById('btn_cancel_user').classList.remove('hidden');
+        // Se for gerente, bloqueia o select de local
+        if(currentUser.role === 'gerente') document.getElementById('new_u_loc').disabled = true;
     }
     
     function resetUserForm() {
@@ -615,6 +677,7 @@
         document.getElementById('new_u_pass').placeholder = "Senha";
         document.getElementById('btn_save_user').innerText = "Criar Conta";
         document.getElementById('btn_cancel_user').classList.add('hidden');
+        document.getElementById('new_u_loc').disabled = false;
     }
 
     // --- GESTÃO LOCAIS ---
