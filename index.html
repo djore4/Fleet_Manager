@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v48</title>
+    <title>FleetWise Pro - v50</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -74,10 +74,10 @@
         .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; text-transform: uppercase; letter-spacing: 1px; display: none; }
 
         /* TIMELINE */
-        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; }
+        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
         .gantt-corner { min-width: 120px; width: 120px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
-        .gantt-days { flex: 1; display: flex; height: 100%; }
+        .gantt-days { flex: 1; display: flex; height: 100%; position: relative; }
         .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.85rem; height: 100%; }
         .gantt-day.month-start { border-left: 2px solid var(--border); background-color: #e9ecef !important; }
         .gantt-row { display: flex; min-width: 100%; height: 60px; border-bottom: 1px solid #eee; position: relative; }
@@ -86,6 +86,8 @@
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
+        
+        /* A LINHA VERMELHA RESTAURADA */
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LISTS */
@@ -368,6 +370,11 @@
         if (b.error) throw b.error; 
         if (l.error) throw l.error; allLocations = l.data || [];
         
+        // ORDENAÇÃO
+        fleet.sort((a,b) => a.name.localeCompare(b.name));
+        people.sort((a,b) => a.name.localeCompare(b.name));
+        allLocations.sort((a,b) => a.name.localeCompare(b.name));
+
         bookings = (b.data||[]).map(x => ({
             id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
@@ -424,11 +431,15 @@
     function updateSelects() {
         const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '';
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '';
+        
         if(sCar) fleet.filter(c => c.location === activeLocation).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
-        if(sDriver) people.forEach(p => sDriver.add(new Option(p.name, p.id)));
+        
+        // FILTRO DE PESSOAS POR LOCAL
+        if(sDriver) {
+            people.filter(p => p.location === activeLocation).forEach(p => sDriver.add(new Option(p.name, p.id)));
+        }
     }
 
-    // --- NOVA FUNÇÃO DE DATA ---
     function formatDateForInput(isoString) {
         if (!isoString) return '';
         const date = new Date(isoString);
@@ -438,7 +449,6 @@
     }
 
     async function saveBooking() {
-        // Obter valores com verificação de segurança (evitar erro se elemento não existe)
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
         
         const type = getVal('inp_type');
@@ -447,14 +457,19 @@
 
         if(!end) return alert("Data de fim obrigatória.");
 
+        // BUSCAR NOME DA PESSOA SELECIONADA
+        const driverId = getVal('inp_driver');
+        const selectedPerson = people.find(p => p.id == driverId);
+        const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
+
         const rec = {
             vehicle_id: getVal('inp_vehicle'),
-            user_id: getVal('inp_driver'),
+            user_id: driverId,
             type: type,
             start_time: start,
             end_time: end,
             location: activeLocation, 
-            user_name: currentUser.username,
+            user_name: driverName, // GRAVA O NOME DA PESSOA
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
@@ -499,8 +514,6 @@
 
     function editBooking(id) {
         if(currentUser.role === 'vendedor') return;
-        
-        // CORREÇÃO: Converter para string para garantir comparação correta
         const b = bookings.find(x => String(x.id) === String(id));
         if(!b) return console.error("Agendamento não encontrado:", id);
 
@@ -517,7 +530,6 @@
         document.getElementById('inp_driver').value = b.userId;
         document.getElementById('inp_type').value = b.type;
         
-        // USAR FUNÇÃO DE DATA SEGURA
         document.getElementById('inp_start').value = formatDateForInput(b.start);
         document.getElementById('inp_end').value = formatDateForInput(b.end);
         
@@ -541,6 +553,15 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
+        // CALCULO DA LINHA 'AGORA'
+        const now = new Date();
+        const diff = now - start;
+        let nowLineHtml = '';
+        if(diff >= 0 && diff < (days * msDay)) {
+            const leftPos = (diff / msDay) * zoomLevel;
+            nowLineHtml = `<div class="now-line" style="left:${leftPos}px;"></div>`;
+        }
+
         let htmlH = `<div class="gantt-corner">VIATURA</div><div class="gantt-days">`;
         for(let i=0; i<days; i++) {
             let d = new Date(start); d.setDate(d.getDate()+i);
@@ -552,6 +573,10 @@
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
+            
+            // INSERIR A LINHA DO AGORA
+            row += nowLineHtml;
+
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
             
             bookings.filter(b => b.vehicleId == c.id && b.location === activeLocation).forEach(b => {
@@ -581,7 +606,7 @@
             const person = people.find(p => p.id == b.userId) || {name:'?'};
             
             if(filterType && b.type !== filterType) return;
-            const txt = (car.plate + car.name + person.name + (b.clientName||'')).toLowerCase();
+            const txt = (car.plate + car.name + (b.userName||'') + (b.clientName||'')).toLowerCase();
             if(!txt.includes(filter)) return;
 
             const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
@@ -596,7 +621,7 @@
             tb.innerHTML += `<tr>
                 <td><b>${b.location}</b></td>
                 <td><b>${car.plate}</b><br><small>${car.name}</small></td>
-                <td>${person.name} ${clientData}</td>
+                <td>${b.userName} ${clientData}</td>
                 <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
                 <td><small>${date}</small></td>
                 <td style="text-align:right">${editBtn} ${delBtn}</td>
