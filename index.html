@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FleetWise Pro - v37</title>
+    <title>FleetWise Pro - v38</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
+            /* DESIGN ODOO STYLE */
             --primary: #017E84; --primary-dark: #015e63;
             --secondary: #00A09D;
             --bg: #F9FAFB; --text: #212529; --white: #ffffff;
             --border: #DEE2E6; --danger: #DC3545; --excel: #217346;
+            --gaia-color: #6f42c1; --porto-color: #007bff;
             --weekend: #F2F4F7; --now-line: #DC3545;
         }
 
@@ -132,7 +134,7 @@
             <button onclick="nav('list')" id="nav-list">📋 Feed</button>
             <button onclick="nav('fleet')" id="nav-fleet" class="restricted">🚗 Viaturas</button>
             <button onclick="nav('people')" id="nav-people" class="restricted">👥 Pessoas</button>
-            <button onclick="nav('users')" id="nav-users" class="restricted">🔐 Equipa</button>
+            <button onclick="nav('users')" id="nav-users" class="restricted">🔐 Equipa</button> 
             <button onclick="nav('locs')" id="nav-locs" class="admin-only">📍 Locais</button>
         </nav>
     </div>
@@ -236,9 +238,10 @@
                 <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Vazio para manter atual"></div>
                 <div class="form-col"><label>Perfil</label>
                     <select id="new_u_role">
-                        <option value="vendedor">Vendedor (Consulta)</option>
-                        <option value="genius">Genius (Gestão)</option>
-                        <option value="admin">Admin (Total)</option>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="genius">Genius</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="admin">Admin</option>
                     </select>
                 </div>
                 <div class="form-col"><label>Local Base</label>
@@ -303,7 +306,7 @@
             if (error || !user) throw new Error("Dados incorretos.");
 
             currentUser = user;
-            activeLocation = user.location || 'Gaia'; // Local do user manda
+            activeLocation = user.location || 'Gaia'; 
             
             await refreshData();
             
@@ -330,24 +333,22 @@
         const formBooking = document.getElementById('card-booking-form');
         const msgReadOnly = document.getElementById('msg-read-only');
 
-        if(navFleet) navFleet.style.display = 'none';
-        if(navPeople) navPeople.style.display = 'none';
-        if(navUsers) navUsers.style.display = 'none';
-        if(navLocs) navLocs.style.display = 'none';
-        if(formBooking) formBooking.style.display = 'block'; 
-        if(msgReadOnly) msgReadOnly.style.display = 'none';
+        // Reset
+        navFleet.style.display = 'none';
+        navPeople.style.display = 'none';
+        navUsers.style.display = 'none';
+        navLocs.style.display = 'none';
+        formBooking.style.display = 'block'; 
+        msgReadOnly.style.display = 'none';
 
         if (role === 'vendedor') {
-            if(formBooking) formBooking.style.display = 'none'; 
-            if(msgReadOnly) msgReadOnly.style.display = 'block';
+            formBooking.style.display = 'none'; msgReadOnly.style.display = 'block';
         } else if (role === 'genius') {
-            if(navFleet) navFleet.style.display = 'block';
-            if(navPeople) navPeople.style.display = 'block';
+            navFleet.style.display = 'block'; navPeople.style.display = 'block';
+        } else if (role === 'gerente') {
+            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block';
         } else if (role === 'admin') {
-            if(navFleet) navFleet.style.display = 'block';
-            if(navPeople) navPeople.style.display = 'block';
-            if(navUsers) navUsers.style.display = 'block';
-            if(navLocs) navLocs.style.display = 'block';
+            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block'; navLocs.style.display = 'block';
         }
         nav('dash');
     }
@@ -371,8 +372,14 @@
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi
         }));
 
-        if (currentUser && currentUser.role === 'admin') {
-            const u = await clientDB.from('app_users').select('*');
+        // Admin e Gerente podem ver lista de users
+        if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'gerente')) {
+            let query = clientDB.from('app_users').select('*');
+            // Gerente só vê sua equipa
+            if (currentUser.role === 'gerente') {
+                query = query.eq('location', currentUser.location);
+            }
+            const u = await query;
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
@@ -395,7 +402,7 @@
         selects.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
-                const currentVal = el.value; // Manter valor se edição
+                const currentVal = el.value; 
                 el.innerHTML = '';
                 allLocations.forEach(loc => el.add(new Option(loc.name, loc.name)));
                 if(currentVal && Array.from(el.options).some(o => o.value === currentVal)) el.value = currentVal;
@@ -418,7 +425,7 @@
             type: document.getElementById('inp_type').value,
             start_time: document.getElementById('inp_start').value,
             end_time: document.getElementById('inp_end').value,
-            location: activeLocation, // Força o local do user
+            location: activeLocation, 
             user_name: currentUser.username,
             client_name: document.getElementById('inp_client_name').value,
             client_phone: document.getElementById('inp_client_phone').value,
@@ -524,8 +531,6 @@
         
         bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
         bookings.forEach(b => {
-            // No Feed, mostrar apenas o local do user (exceto se admin?)
-            // Vamos manter simples: vê o local ativo.
             if(b.location !== activeLocation && currentUser.role !== 'admin') return;
 
             const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
@@ -561,7 +566,7 @@
     async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     async function savePeople() { const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; if(n){ showLoader(true); await clientDB.from('people').insert({name:n,role:r,location:l}); await refreshData(); showLoader(false); document.getElementById('p_name').value=''; } }
     
-    // --- GESTÃO USERS (AGORA COM EDIÇÃO) ---
+    // --- GESTÃO USERS ---
     async function saveUser() { 
         const id = document.getElementById('u_id_edit').value;
         const u = document.getElementById('new_u_name').value;
@@ -571,35 +576,34 @@
         
         if(!u || !l) return alert("Utilizador e Local são obrigatórios.");
         
+        // Gerente não pode criar admins nem mudar locais para fora do seu
+        if(currentUser.role === 'gerente') {
+            if(r === 'admin') return alert("Gerentes não podem criar Admins.");
+            if(l !== currentUser.location) return alert("Só pode adicionar à sua equipa (" + currentUser.location + ")");
+        }
+
         showLoader(true);
         if (id) {
-            // Update
             const updates = { username: u, role: r, location: l };
-            if(p) updates.password = p; // Só muda senha se escrever algo
+            if(p) updates.password = p; 
             await clientDB.from('app_users').update(updates).eq('id', id);
-            alert("Utilizador atualizado!");
+            alert("Atualizado!");
         } else {
-            // Insert
-            if(!p) { showLoader(false); return alert("Senha obrigatória para criar novo."); }
+            if(!p) { showLoader(false); return alert("Senha obrigatória."); }
             await clientDB.from('app_users').insert({username:u, password:p, role:r, location:l});
-            alert("Utilizador criado!");
+            alert("Criado!");
         }
-        
-        await refreshData(); 
-        resetUserForm();
-        showLoader(false); 
+        await refreshData(); resetUserForm(); showLoader(false); 
     }
     
     function editUser(id) {
         const user = appUsers.find(x => x.id == id);
         if (!user) return;
-        
         document.getElementById('u_id_edit').value = user.id;
         document.getElementById('new_u_name').value = user.username;
         document.getElementById('new_u_pass').placeholder = "Deixe vazio para não alterar";
         document.getElementById('new_u_role').value = user.role;
         document.getElementById('new_u_loc').value = user.location;
-        
         document.getElementById('btn_save_user').innerText = "Atualizar User";
         document.getElementById('btn_cancel_user').classList.remove('hidden');
     }
@@ -616,21 +620,9 @@
     // --- GESTÃO LOCAIS ---
     async function addLocation() {
         const name = document.getElementById('new_loc_name').value;
-        if(name) {
-            showLoader(true);
-            await clientDB.from('locations').insert({name:name});
-            await refreshData();
-            document.getElementById('new_loc_name').value='';
-            showLoader(false);
-        }
+        if(name) { showLoader(true); await clientDB.from('locations').insert({name:name}); await refreshData(); document.getElementById('new_loc_name').value=''; showLoader(false); }
     }
-    function renderLocsList() {
-        const t=document.getElementById('locs_list'); 
-        if(t) { 
-            t.innerHTML=''; 
-            allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); 
-        }
-    }
+    function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
 
     function renderFleet() { const t=document.getElementById('fleet_body'); if(t) { t.innerHTML=''; fleet.forEach(c=>t.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td style="text-align:right"><button onclick="delRec('fleet',${c.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
     function renderPeople() { const t=document.getElementById('people_body'); if(t) { t.innerHTML=''; people.forEach(p=>t.innerHTML+=`<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right"><button onclick="delRec('people',${p.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
