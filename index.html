@@ -2,8 +2,8 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v54</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FleetWise Pro - v53</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -11,125 +11,100 @@
         :root {
             --primary: #017E84; --primary-dark: #015e63;
             --secondary: #00A09D;
-            --bg: #F0F2F5; --text: #212529; --white: #ffffff;
+            --bg: #F9FAFB; --text: #212529; --white: #ffffff;
             --border: #DEE2E6; --danger: #DC3545; --excel: #217346;
             --weekend: #F2F4F7; --now-line: #DC3545;
+            --gaia-color: #6f42c1; --porto-color: #007bff;
             --archived: #adb5bd;
-            --nav-height: 60px;
         }
 
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 80px; font-size: 14px; }
+        * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); padding-bottom: 100px; font-size: 14px; }
 
         /* LOADER */
-        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 6000; display:none; justify-content:center; align-items:center; flex-direction:column; }
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index: 6000; display:none; justify-content:center; align-items:center; flex-direction:column; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* LOGIN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 350px; text-align: center; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
         .login-box h2 { color: var(--primary); margin-top: 0; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* APP LAYOUT */
-        #app-content { display: none; max-width: 1000px; margin: 0 auto; }
-        
-        /* HEADER COMPACTO */
-        .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; }
-        #user-display { font-size: 0.85rem; background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:5px; }
+        /* HEADER */
+        #app-content { display: none; }
+        .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
+        h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        #user-display { position: absolute; right: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
 
-        /* NAVEGAÇÃO MOBILE (BOTTOM BAR) */
-        nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: #fff; border-top: 1px solid #ddd; 
-            display: flex; justify-content: space-around; 
-            padding: 8px 0; padding-bottom: env(safe-area-inset-bottom);
-            z-index: 4000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-        nav button { 
-            background: transparent; border: none; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.7rem; color: #999; font-weight: 600; gap: 4px; padding: 5px; flex: 1;
-        }
-        nav button span.icon { font-size: 1.2rem; margin-bottom: 2px; }
-        nav button.active { color: var(--primary); }
-        
-        .restricted, .admin-only { display: none; }
+        nav { display: flex; justify-content: center; background: #fff; overflow-x: auto; border-bottom: 1px solid var(--border); }
+        nav button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        nav button:hover { color: var(--primary); background-color: #f8f9fa; }
+        nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #eef9f9;}
+        .restricted { display: none; } 
+        .admin-only { display: none; }
 
-        /* SECÇÕES */
-        .view-section { display: none; padding: 15px; animation: fadeIn 0.2s; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from {opacity:0; transform:translateY(5px);} to {opacity:1; transform:translateY(0);} }
+        /* LAYOUT */
+        .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
+        .card { background: var(--white); padding: 25px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
 
-        /* CARDS & FORMS */
-        .card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; }
-        
-        .form-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-end; }
+        /* FORMS */
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
-        label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; height: 42px; background: #fff; -webkit-appearance: none; }
-        
-        #extra_fields { background-color: #f8f9fa; border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; height: 45px; background: #fff; }
+        #extra_fields { background-color: #f8f9fa; border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin-bottom: 20px; display: none; }
         #extra_fields.show { display: block; }
 
         /* BUTTONS */
-        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; color: white; height: 42px; text-transform: uppercase; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn:active { transform: scale(0.98); }
+        .btn { width: 100%; padding: 0 15px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem; color: white; height: 45px; text-transform: uppercase; transition: 0.2s; }
         .btn-save { background: var(--primary); }
-        .btn-cancel { background: #6c757d; color: white; margin-top: 0; }
-        .btn-excel { background-color: var(--excel); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; height: 36px; display:flex; align-items:center; gap:5px;}
-        .action-btn { padding: 6px 10px; border: 1px solid #eee; background: #fff; border-radius: 6px; cursor: pointer; margin-left: 5px; color: #555; font-size:0.9rem; }
+        .btn-cancel { background: #6c757d; margin-top: 10px; }
+        .btn-excel { background-color: var(--excel); color: white; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; height: 40px; display:flex; align-items:center; justify-content:center; gap:5px;}
+        .action-btn { padding: 6px 10px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; margin-left: 5px; color: #555; }
+        .hidden { display: none !important; }
 
-        /* LOCAIS TABS */
-        .loc-tabs { display: flex; margin: -15px -15px 15px -15px; border-bottom: 1px solid #eee; background: #fff; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .loc-tab { padding: 12px 20px; white-space: nowrap; cursor: pointer; font-weight: 600; background: transparent; color: #666; border:none; border-bottom: 3px solid transparent; font-size: 0.9rem; }
-        .loc-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 8px; margin-bottom: 15px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; font-size: 0.8rem; letter-spacing: 1px; display: none; text-transform: uppercase; }
+        /* LOCAIS */
+        .loc-tabs { display: flex; margin-bottom: 0; border-bottom: 1px solid var(--border); background: #fff; border-radius: 4px 4px 0 0; overflow: hidden; margin-bottom: 20px; }
+        .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f8f9fa; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; }
+        .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
+        .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; text-transform: uppercase; letter-spacing: 1px; display: none; }
 
         /* TIMELINE */
-        .timeline-wrapper { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; background: white; min-height: 50vh; position: relative; -webkit-overflow-scrolling: touch; }
-        .gantt-header { display: flex; min-width: 100%; border-bottom: 1px solid #eee; background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 40px; align-items: center; }
-        .gantt-corner { min-width: 100px; width: 100px; background: #f1f1f1; border-right: 1px solid #eee; position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.7rem; color:#666; }
+        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; }
+        .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
+        .gantt-corner { min-width: 120px; width: 120px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
         .gantt-days { flex: 1; display: flex; height: 100%; position: relative; }
-        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #f0f0f0; font-weight: 600; color: #555; font-size: 0.75rem; height: 100%; }
-        .gantt-row { display: flex; min-width: 100%; height: 50px; border-bottom: 1px solid #f5f5f5; position: relative; }
-        .gantt-label { min-width: 100px; width: 100px; background: white; border-right: 1px solid #eee; position: sticky; left: 0; z-index: 10; padding: 0 8px; font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; overflow:hidden; }
+        .gantt-day { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid #eee; font-weight: 600; color: #555; font-size: 0.85rem; height: 100%; }
+        .gantt-day.month-start { border-left: 2px solid var(--border); background-color: #e9ecef !important; }
+        .gantt-row { display: flex; min-width: 100%; height: 60px; border-bottom: 1px solid #eee; position: relative; }
+        .gantt-label { min-width: 120px; width: 120px; background: white; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 10; padding: 0 10px; font-size: 0.8rem; font-weight: 600; display: flex; flex-direction: column; justify-content: center; }
         .gantt-track { flex: 1; position: relative; height: 100%; display: flex; }
-        .gantt-guide { border-left: 1px solid #fcfcfc; height: 100%; flex-shrink: 0; position: relative; }
-        .gantt-bar { position: absolute; height: 32px; top: 9px; border-radius: 4px; color: white; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 2px rgba(0,0,0,0.15); font-weight: 600; padding:0 5px; }
+        .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
+        .gantt-guide.month-start { border-left: 2px solid var(--border); } 
+        .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LISTS */
-        .filter-bar { display: flex; gap: 8px; margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
-        .table-wrap { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; background: white; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
-        th { background: #f8f9fa; font-weight: 700; text-align: left; color: #444; }
-        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; color:white; font-weight:bold; text-transform: uppercase; }
-        .client-info { display:block; font-size:0.75rem; color:#666; margin-top:4px; padding-left:8px; border-left:2px solid var(--secondary); }
-        .archived-row { opacity: 0.5; background-color: #fcfcfc; }
-        .archived-row td { text-decoration: line-through; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); }
+        .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        th { background: #f8f9fa; font-weight: 700; text-align: left; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
+        .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
+        .archived-row { opacity: 0.6; background-color: #f9f9f9; }
+        .archived-row td { text-decoration: line-through; color: #999; }
 
-        /* MOBILE OPTIMIZATIONS */
         @media (max-width: 768px) {
             .form-row { flex-direction: column; gap: 10px; }
-            /* Datas lado a lado no mobile */
-            .form-row.dates-row { flex-direction: row; }
-            
+            .gantt-corner, .gantt-label { width: 90px; min-width: 90px; font-size: 0.75rem; }
             .filter-bar { flex-direction: column; }
-            .card { padding: 15px; border-radius: 0; border-left: none; border-right: none; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-            
-            /* Ajuste de botões no formulário */
-            .form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .form-actions .btn { margin: 0; }
-            
-            /* Timeline mais compacta */
-            .gantt-corner, .gantt-label { min-width: 85px; width: 85px; font-size: 0.7rem; }
-            .gantt-row { height: 45px; }
-            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
+            nav { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -139,8 +114,8 @@
 
 <div id="login-screen">
     <div class="login-box">
-        <h2 style="margin-bottom:5px;">FleetWise</h2>
-        <p style="margin-top:0; color:#666; margin-bottom:20px;">Gestão de Viaturas</p>
+        <h2>FleetWise</h2>
+        <p>Gestão de Viaturas</p>
         <input type="text" id="u" placeholder="Utilizador">
         <input type="password" id="p" placeholder="Senha">
         <button onclick="tentarLogin()">ENTRAR</button>
@@ -149,11 +124,19 @@
 
 <div id="app-content">
     <div class="sticky-header-group">
-        <h1>FleetWise</h1>
-        <div id="user-display" onclick="location.reload()">
-            <span id="user_label">...</span> 
-            <span style="font-size:1.2rem">👤</span>
-        </div>
+        <header>
+            <h1>Gestão de Viaturas</h1>
+            <div id="user-display" onclick="location.reload()">👤 <span id="user_label">...</span> (Sair)</div>
+        </header>
+        
+        <nav>
+            <button onclick="nav('dash')" id="nav-dash" class="active">📅 Dashboard</button>
+            <button onclick="nav('list')" id="nav-list">📋 Feed</button>
+            <button onclick="nav('fleet')" id="nav-fleet" class="restricted">🚗 Viaturas</button>
+            <button onclick="nav('people')" id="nav-people" class="restricted">👥 Pessoas</button>
+            <button onclick="nav('users')" id="nav-users" class="restricted">🔐 Equipa</button> 
+            <button onclick="nav('locs')" id="nav-locs" class="admin-only">📍 Locais</button>
+        </nav>
     </div>
 
     <section id="tab-dash" class="view-section active">
@@ -162,51 +145,44 @@
 
         <div class="card" id="card-booking-form" style="border-top:none;">
             <input type="hidden" id="booking_id">
-            
             <div class="form-row">
                 <div class="form-col"><label>Viatura</label><select id="inp_vehicle"><option value="" disabled selected>-- Selecione --</option></select></div>
-            </div>
-            
-            <div class="form-row dates-row">
-                <div class="form-col"><label>Responsável</label><select id="inp_driver"><option value="" disabled selected>-- --</option></select></div>
+                <div class="form-col"><label>Responsável</label><select id="inp_driver"><option value="" disabled selected>-- Selecione --</option></select></div>
                 <div class="form-col"><label>Tipo</label>
                     <select id="inp_type" onchange="toggleExtraFields()">
-                        <option value="" disabled selected>-- --</option>
+                        <option value="" disabled selected>-- Selecione --</option>
                         <option value="Test-drive">Test-drive</option>
                         <option value="Empréstimo">Empréstimo</option>
                         <option value="Serviço">Serviço</option>
-                        <option value="Indisponível">Off</option>
+                        <option value="Indisponível">Indisponível</option>
                     </select>
                 </div>
             </div>
 
             <div id="extra_fields">
-                <h4 style="margin:0 0 10px 0; color:var(--primary); padding-bottom:5px; border-bottom:1px solid #eee;">Cliente</h4>
+                <h4 style="margin:0 0 10px 0; color:var(--primary); border-bottom:1px solid #ddd; padding-bottom:5px;">Dados do Cliente</h4>
                 <div class="form-row">
-                    <div class="form-col"><input id="inp_client_name" placeholder="Nome"></div>
-                    <div class="form-col"><input type="tel" id="inp_client_phone" placeholder="Telefone"></div>
-                </div>
-                <div class="form-row dates-row">
-                    <div class="form-col"><input id="inp_client_nif" placeholder="NIF"></div>
-                    <div class="form-col"><input id="inp_client_bi" placeholder="CC"></div>
+                    <div class="form-col"><label>Nome Cliente</label><input id="inp_client_name"></div>
+                    <div class="form-col"><label>Telefone</label><input type="tel" id="inp_client_phone"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-col"><input id="inp_client_addr" placeholder="Morada"></div>
+                    <div class="form-col"><label>NIF</label><input id="inp_client_nif"></div>
+                    <div class="form-col"><label>Morada</label><input id="inp_client_addr"></div>
+                    <div class="form-col"><label>CC/BI</label><input id="inp_client_bi"></div>
                 </div>
             </div>
 
-            <div class="form-row dates-row">
+            <div class="form-row">
                 <div class="form-col"><label>Início</label><input type="datetime-local" id="inp_start"></div>
                 <div class="form-col"><label>Fim</label><input type="datetime-local" id="inp_end"></div>
-            </div>
-            
-            <div class="form-actions">
-                <button class="btn btn-save" id="btn_save" onclick="saveBooking()">AGENDAR</button>
-                <button class="btn btn-cancel hidden" id="btn_cancel" onclick="resetForm()">LIMPAR</button>
+                <div class="form-col" style="display:flex; align-items:flex-end; gap:10px;">
+                    <button class="btn btn-save" id="btn_save" style="flex:1" onclick="saveBooking()">AGENDAR</button>
+                    <button class="btn btn-cancel hidden" id="btn_cancel" style="flex:1; margin-top:0;" onclick="resetForm()">CANCELAR</button>
+                </div>
             </div>
         </div>
         
-        <div id="msg-read-only" style="display:none; padding:15px; text-align:center; color:#666; font-style:italic; background:#fff; margin-bottom:10px; border-radius:8px;">🔒 Modo Consulta</div>
+        <div id="msg-read-only" style="display:none; padding:15px; text-align:center; color:#666; font-style:italic; background:#fff; margin-bottom:10px;">🔒 Modo Consulta (Apenas Leitura)</div>
 
         <div class="card" style="padding:0; overflow:hidden;">
             <div style="padding:10px; display:flex; justify-content:space-between; background:#f8f9fa; border-bottom:1px solid #eee;">
@@ -218,17 +194,15 @@
     </section>
 
     <section id="tab-list" class="view-section">
-        <div class="card" style="padding:10px;">
+        <div class="card">
             <div class="filter-bar">
-                <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="flex:2; padding:10px; border:1px solid #ddd; border-radius:6px;">
-                <div style="display:flex; gap:5px; flex:1">
-                    <select id="filter_type" onchange="renderList()" style="flex:1;"><option value="">Todos</option><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select>
-                    <button class="btn-excel" onclick="exportToExcel()">⬇</button>
-                </div>
+                <input type="text" id="filter_text" placeholder="🔍 Pesquisar..." onkeyup="renderList()" style="flex:2; padding:10px; border:1px solid #ddd;">
+                <select id="filter_type" onchange="renderList()" style="flex:1; height:40px;"><option value="">Todos os Tipos</option><option>Test-drive</option><option>Empréstimo</option><option>Serviço</option></select>
+                <button class="btn-excel" onclick="exportToExcel()">⬇ Excel</button>
             </div>
             <div class="table-wrap">
                 <table id="table_bookings">
-                    <thead><tr><th>Viatura</th><th>Responsável</th><th>Datas</th><th></th></tr></thead>
+                    <thead><tr><th>Local</th><th>Viatura</th><th>Responsável / Cliente</th><th>Tipo</th><th>Datas</th><th>Ações</th></tr></thead>
                     <tbody id="list_body"></tbody>
                 </table>
             </div>
@@ -236,83 +210,70 @@
     </section>
 
     <section id="tab-fleet" class="view-section">
-        <div class="card">
+        <div class="card" style="border-left:5px solid var(--primary)">
             <h3>Viaturas</h3>
-            <div class="form-row dates-row">
-                <input id="f_name" placeholder="Modelo" class="form-col">
-                <input id="f_plate" placeholder="Matrícula" class="form-col">
-            </div>
             <div class="form-row">
+                <input id="f_name" placeholder="Modelo"><input id="f_plate" placeholder="Matrícula">
                 <select id="f_loc"></select>
             </div>
             <button class="btn btn-save" onclick="saveFleet()">Adicionar Viatura</button>
-            <div class="table-wrap" style="margin-top:15px;"><table width="100%"><thead><tr><th>Modelo</th><th>Matrícula</th><th>Estado</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
+            <div class="table-wrap" style="margin-top:10px;"><table width="100%"><thead><tr><th>Local</th><th>Modelo</th><th>Matrícula</th><th>Estado</th></tr></thead><tbody id="fleet_body"></tbody></table></div>
         </div>
     </section>
 
     <section id="tab-people" class="view-section">
-        <div class="card">
+        <div class="card" style="border-left:5px solid var(--secondary)">
             <h3>Pessoas</h3>
             <input type="hidden" id="p_id_edit">
-            <div class="form-row dates-row">
-                <input id="p_name" placeholder="Nome" class="form-col">
-                <input id="p_role" placeholder="Cargo" class="form-col">
-            </div>
+            
             <div class="form-row">
-                <select id="p_loc"></select>
+                <div class="form-col"><input id="p_name" placeholder="Nome"></div>
+                <div class="form-col"><input id="p_role" placeholder="Cargo"></div>
+                <div class="form-col"><select id="p_loc"></select></div>
             </div>
-            <div class="form-actions">
-                <button class="btn btn-save" id="btn_save_person" onclick="savePeople()">Adicionar</button>
-                <button class="btn btn-cancel hidden" id="btn_cancel_person" onclick="resetPeopleForm()">Cancelar</button>
+            
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-save" id="btn_save_person" style="background:var(--secondary); flex:1" onclick="savePeople()">Adicionar Pessoa</button>
+                <button class="btn btn-cancel hidden" id="btn_cancel_person" style="flex:1" onclick="resetPeopleForm()">Cancelar</button>
             </div>
-            <div class="table-wrap" style="margin-top:15px;"><table width="100%"><thead><tr><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
+
+            <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
         </div>
     </section>
 
     <section id="tab-users" class="view-section">
-        <div class="card">
-            <h3>Equipa</h3>
+        <div class="card" style="border-left:5px solid #FFC107">
+            <h3>Gestão de Equipa</h3>
             <input type="hidden" id="u_id_edit"> 
-            <div class="form-row dates-row">
-                <input id="new_u_name" placeholder="User" class="form-col">
-                <input id="new_u_pass" placeholder="Senha" class="form-col">
+            <div class="form-row">
+                <div class="form-col"><label>Username</label><input id="new_u_name" placeholder="Ex: joao"></div>
+                <div class="form-col"><label>Senha</label><input id="new_u_pass" placeholder="Vazio para manter atual"></div>
+                <div class="form-col"><label>Perfil</label>
+                    <select id="new_u_role">
+                        <option value="vendedor">Vendedor</option>
+                        <option value="genius">Genius</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
             </div>
-            <div class="form-row dates-row">
-                <select id="new_u_role" class="form-col">
-                    <option value="vendedor">Vendedor</option>
-                    <option value="genius">Genius</option>
-                    <option value="gerente">Gerente</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <select id="new_u_loc" class="form-col"></select>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-save" id="btn_save_user" onclick="saveUser()">Gravar</button>
-                <button class="btn btn-cancel hidden" id="btn_cancel_user" onclick="resetUserForm()">X</button>
-            </div>
-            <div class="table-wrap" style="margin-top:15px;"><table width="100%"><thead><tr><th>User</th><th>Role</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
+            <button class="btn btn-save" id="btn_save_user" style="background:#FFC107; color:black" onclick="saveUser()">Criar / Atualizar</button>
+            <button class="btn btn-cancel hidden" id="btn_cancel_user" onclick="resetUserForm()">Cancelar Edição</button>
+            <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>User</th><th>Perfil</th><th>Local</th><th>Ações</th></tr></thead><tbody id="users_list"></tbody></table></div>
         </div>
     </section>
 
     <section id="tab-locs" class="view-section">
-        <div class="card">
-            <h3>Locais</h3>
+        <div class="card" style="border-left:5px solid #333">
+            <h3>Locais (Pólos)</h3>
             <div class="form-row">
-                <input id="new_loc_name" placeholder="Nome do Local">
-                <button class="btn btn-save" style="width:auto;" onclick="addLocation()">OK</button>
+                <div class="form-col"><input id="new_loc_name" placeholder="Nome do Local (Ex: Lisboa)"></div>
+                <div class="form-col"><button class="btn btn-save" style="background:#333" onclick="addLocation()">Adicionar Local</button></div>
             </div>
-            <div class="table-wrap"><table width="100%"><thead><tr><th>Nome</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table></div>
+            <div class="table-wrap"><table width="100%"><thead><tr><th>ID</th><th>Nome do Local</th><th>Ações</th></tr></thead><tbody id="locs_list"></tbody></table></div>
         </div>
     </section>
-
-    <nav>
-        <button onclick="nav('dash')" id="nav-dash" class="active"><span class="icon">📅</span>Dash</button>
-        <button onclick="nav('list')" id="nav-list"><span class="icon">📋</span>Feed</button>
-        <button onclick="nav('fleet')" id="nav-fleet" class="restricted"><span class="icon">🚗</span>Frota</button>
-        <button onclick="nav('people')" id="nav-people" class="restricted"><span class="icon">👥</span>Pessoas</button>
-        <button onclick="nav('users')" id="nav-users" class="restricted"><span class="icon">🔐</span>Equipa</button>
-        <button onclick="nav('locs')" id="nav-locs" class="admin-only"><span class="icon">📍</span>Locais</button>
-    </nav>
 </div>
 
 <script>
@@ -331,7 +292,7 @@
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
     async function tentarLogin() {
-        if (typeof window.supabase === 'undefined') return alert("Erro de Rede");
+        if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Supabase não carregou");
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
         if (!u || !p) return alert("Preencha tudo.");
@@ -350,7 +311,7 @@
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('user_label').innerText = `${user.username}`;
+            document.getElementById('user_label').innerText = `${user.username} (${user.role})`;
             
             if(currentUser.role === 'admin') {
                 document.getElementById('admin-loc-selector').style.display = 'flex';
@@ -365,7 +326,7 @@
             aplicarPermissoes();
 
         } catch (err) {
-            alert(err.message);
+            alert("Erro de Login: " + err.message);
         } finally {
             showLoader(false);
         }
@@ -373,27 +334,24 @@
 
     function aplicarPermissoes() {
         const role = currentUser.role;
-        const els = {
-            fleet: document.getElementById('nav-fleet'),
-            people: document.getElementById('nav-people'),
-            users: document.getElementById('nav-users'),
-            locs: document.getElementById('nav-locs'),
-            form: document.getElementById('card-booking-form'),
-            msg: document.getElementById('msg-read-only')
-        };
+        const navFleet = document.getElementById('nav-fleet');
+        const navPeople = document.getElementById('nav-people');
+        const navUsers = document.getElementById('nav-users');
+        const navLocs = document.getElementById('nav-locs');
+        const formBooking = document.getElementById('card-booking-form');
+        const msgReadOnly = document.getElementById('msg-read-only');
 
-        // Reset
-        for(let k in els) els[k].style.display = 'none';
-        els.form.style.display = 'block';
+        navFleet.style.display = 'none'; navPeople.style.display = 'none'; navUsers.style.display = 'none'; navLocs.style.display = 'none';
+        formBooking.style.display = 'block'; msgReadOnly.style.display = 'none';
 
         if (role === 'vendedor') {
-            els.form.style.display = 'none'; els.msg.style.display = 'block';
+            formBooking.style.display = 'none'; msgReadOnly.style.display = 'block';
         } else if (role === 'genius') {
-            els.fleet.style.display = 'flex'; els.people.style.display = 'flex';
+            navFleet.style.display = 'block'; navPeople.style.display = 'block';
         } else if (role === 'gerente') {
-            els.fleet.style.display = 'flex'; els.people.style.display = 'flex'; els.users.style.display = 'flex';
+            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block';
         } else if (role === 'admin') {
-            els.fleet.style.display = 'flex'; els.people.style.display = 'flex'; els.users.style.display = 'flex'; els.locs.style.display = 'flex';
+            navFleet.style.display = 'block'; navPeople.style.display = 'block'; navUsers.style.display = 'block'; navLocs.style.display = 'block';
         }
         nav('dash');
     }
@@ -433,6 +391,7 @@
 
         populateLocationSelects();
         updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList();
+        
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
         
         setDefaultDates();
@@ -487,7 +446,10 @@
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         
         if(sCar) fleet.filter(c => c.location === activeLocation && c.active !== false).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
-        if(sDriver) people.filter(p => p.location === activeLocation && p.active !== false).forEach(p => sDriver.add(new Option(p.name, p.id)));
+        
+        if(sDriver) {
+            people.filter(p => p.location === activeLocation && p.active !== false).forEach(p => sDriver.add(new Option(p.name, p.id)));
+        }
     }
 
     function formatDateForInput(isoString) {
@@ -500,11 +462,12 @@
 
     async function saveBooking() {
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+        
         const type = getVal('inp_type');
         const start = getVal('inp_start');
-        const end = getVal('inp_end');
+        let end = getVal('inp_end');
 
-        if(!end) return alert("Fim obrigatório");
+        if(!end) return alert("Data de fim obrigatória.");
 
         const driverId = getVal('inp_driver');
         const selectedPerson = people.find(p => String(p.id) === String(driverId));
@@ -516,30 +479,45 @@
         const staticModel = selectedCar ? selectedCar.name : '';
 
         const rec = {
-            vehicle_id: carId, user_id: driverId, type: type,
-            start_time: start, end_time: end, location: activeLocation, 
-            user_name: driverName, static_plate: staticPlate, static_model: staticModel,
-            client_name: getVal('inp_client_name'), client_phone: getVal('inp_client_phone'),
-            client_nif: getVal('inp_client_nif'), client_addr: getVal('inp_client_addr'), client_bi: getVal('inp_client_bi')
+            vehicle_id: carId,
+            user_id: driverId,
+            type: type,
+            start_time: start,
+            end_time: end,
+            location: activeLocation, 
+            user_name: driverName,
+            static_plate: staticPlate,
+            static_model: staticModel,
+            client_name: getVal('inp_client_name'),
+            client_phone: getVal('inp_client_phone'),
+            client_nif: getVal('inp_client_nif'),
+            client_addr: getVal('inp_client_addr'),
+            client_bi: getVal('inp_client_bi')
         };
         
         const idStr = getVal('booking_id');
         const id = idStr ? parseInt(idStr) : null;
 
-        if(!rec.start_time || !rec.vehicle_id) return alert("Faltam dados.");
+        if(!rec.start_time || !rec.vehicle_id) return alert("Preencha viatura e data de início.");
         
         showLoader(true);
         let error = null;
         try {
             if(id) { 
-                const res = await clientDB.from('bookings').update(rec).eq('id', id); error = res.error; 
+                const res = await clientDB.from('bookings').update(rec).eq('id', id); 
+                error = res.error; 
             } else { 
-                const res = await clientDB.from('bookings').insert(rec); error = res.error; 
+                const res = await clientDB.from('bookings').insert(rec); 
+                error = res.error; 
             }
         } catch(e) { error = e; }
 
-        if(error) alert(error.message);
-        else { alert(id ? "Atualizado" : "Criado"); resetForm(); await refreshData(); }
+        if(error) {
+            alert("ERRO AO GRAVAR:\n" + (error.message || JSON.stringify(error)));
+        } else { 
+            alert(id ? "Agendamento ATUALIZADO" : "Agendamento CRIADO"); 
+            resetForm(); await refreshData(); 
+        }
         showLoader(false);
     }
 
@@ -551,7 +529,9 @@
         document.getElementById('btn_cancel').classList.add('hidden');
         document.getElementById('extra_fields').style.display='none';
         document.getElementById('inp_type').value = "";
-        setDefaultDates(); updateSelects(); 
+        
+        setDefaultDates();
+        updateSelects(); 
     }
 
     function toggleExtraFields() { 
@@ -563,32 +543,39 @@
     function editBooking(id) {
         if(currentUser.role === 'vendedor') return;
         const b = bookings.find(x => String(x.id) === String(id));
-        if(!b) return;
+        if(!b) return console.error("Agendamento não encontrado:", id);
 
-        if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Local diferente.");
+        if(b.location !== activeLocation && currentUser.role !== 'admin') return alert("Não pode editar de outro local.");
         
-        const runEdit = () => {
-            nav('dash');
-            document.getElementById('booking_id').value = b.id;
-            document.getElementById('inp_vehicle').value = b.vehicleId;
-            document.getElementById('inp_driver').value = b.userId;
-            document.getElementById('inp_type').value = b.type;
-            document.getElementById('inp_start').value = formatDateForInput(b.start);
-            document.getElementById('inp_end').value = formatDateForInput(b.end);
-            
-            const setVal = (eid, val) => { const el = document.getElementById(eid); if(el) el.value = val || ''; };
-            setVal('inp_client_name', b.clientName); setVal('inp_client_phone', b.clientPhone);
-            setVal('inp_client_nif', b.clientNif); setVal('inp_client_addr', b.clientAddr); setVal('inp_client_bi', b.clientBi);
-            
-            toggleExtraFields();
-            document.getElementById('btn_save').innerText = "ATUALIZAR";
-            document.getElementById('btn_cancel').classList.remove('hidden');
-            document.getElementById('card-booking-form').scrollIntoView({behavior:'smooth'});
-        };
-
         if(currentUser.role === 'admin' && activeLocation !== b.location) {
-            activeLocation = b.location; renderAdminLocTabs(); refreshData().then(runEdit);
-        } else { runEdit(); }
+            activeLocation = b.location;
+            renderAdminLocTabs(); refreshData().then(() => doEdit(b));
+        } else {
+            doEdit(b);
+        }
+    }
+
+    function doEdit(b) {
+        nav('dash');
+        document.getElementById('booking_id').value = b.id;
+        document.getElementById('inp_vehicle').value = b.vehicleId;
+        document.getElementById('inp_driver').value = b.userId;
+        document.getElementById('inp_type').value = b.type;
+        
+        document.getElementById('inp_start').value = formatDateForInput(b.start);
+        document.getElementById('inp_end').value = formatDateForInput(b.end);
+        
+        const setVal = (eid, val) => { const el = document.getElementById(eid); if(el) el.value = val || ''; };
+        setVal('inp_client_name', b.clientName);
+        setVal('inp_client_phone', b.clientPhone);
+        setVal('inp_client_nif', b.clientNif);
+        setVal('inp_client_addr', b.clientAddr);
+        setVal('inp_client_bi', b.clientBi);
+        
+        toggleExtraFields();
+        document.getElementById('btn_save').innerText = "ATUALIZAR";
+        document.getElementById('btn_cancel').classList.remove('hidden');
+        document.getElementById('card-booking-form').scrollIntoView({behavior:'smooth'});
     }
 
     function renderTimeline() {
@@ -598,8 +585,13 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
-        const now = new Date(); const diff = now - start;
-        let nowLineHtml = (diff >= 0 && diff < (days * msDay)) ? `<div class="now-line" style="left:${(diff/msDay)*zoomLevel}px;"></div>` : '';
+        const now = new Date();
+        const diff = now - start;
+        let nowLineHtml = '';
+        if(diff >= 0 && diff < (days * msDay)) {
+            const leftPos = (diff / msDay) * zoomLevel;
+            nowLineHtml = `<div class="now-line" style="left:${leftPos}px;"></div>`;
+        }
 
         let htmlH = `<div class="gantt-corner">VIATURA</div><div class="gantt-days">`;
         for(let i=0; i<days; i++) {
@@ -611,16 +603,19 @@
 
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
-            let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small style="font-weight:400">${c.name.substring(0,9)}</small></div><div class="gantt-track">` + nowLineHtml;
+            let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
+            row += nowLineHtml;
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
             
             bookings.filter(b => b.vehicleId == c.id && b.location === activeLocation).forEach(b => {
                 let s = new Date(b.start), e = new Date(b.end);
                 let left = ((s - start) / msDay) * zoomLevel;
                 let width = ((e - s) / msDay) * zoomLevel;
-                if(width < 5) width = 5;
+                if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                let label = (b.type === 'Test-drive') ? (b.clientName || 'Cli') : b.userName.split(' ')[0];
+                
+                let label = (b.type === 'Test-drive') ? (b.clientName || 'Cliente') : b.userName;
+                
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">${label}</div>`;
             });
             body.innerHTML += row + `</div></div>`;
@@ -636,114 +631,196 @@
         bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
         bookings.forEach(b => {
             if(b.location !== activeLocation && currentUser.role !== 'admin') return;
-            let plate = b.staticPlate || (fleet.find(f => f.id == b.vehicleId) || {plate:'?'}).plate;
-            
+
+            let plate = b.staticPlate;
+            let model = b.staticModel;
+            if(!plate) {
+                const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
+                plate = car.plate;
+                model = car.name;
+            }
+
             if(filterType && b.type !== filterType) return;
-            const txt = (plate + (b.userName||'') + (b.clientName||'')).toLowerCase();
+            const txt = (plate + model + (b.userName||'') + (b.clientName||'')).toLowerCase();
             if(!txt.includes(filter)) return;
 
             const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
             let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius' || currentUser.role === 'gerente') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
             let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
 
-            let info = b.clientName ? `<div class="client-info">${b.clientName}</div>` : '';
-            tb.innerHTML += `<tr><td><b>${plate}</b></td><td>${b.userName}${info}</td><td>${date}</td><td style="text-align:right; white-space:nowrap">${editBtn}${delBtn}</td></tr>`;
+            let clientData = '';
+            if(b.clientName) {
+                clientData = `<div class="client-info"><b>${b.clientName}</b><br>📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>🏠 ${b.clientAddr || 'Sem morada'}</div>`;
+            }
+
+            tb.innerHTML += `<tr>
+                <td><b>${b.location}</b></td>
+                <td><b>${plate}</b><br><small>${model}</small></td>
+                <td>${b.userName} ${clientData}</td>
+                <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
+                <td><small>${date}</small></td>
+                <td style="text-align:right">${editBtn} ${delBtn}</td>
+            </tr>`;
         });
     }
 
-    async function delBooking(id) { if(confirm("Apagar?")) { await clientDB.from('bookings').delete().eq('id', id); await refreshData(); } }
+    async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); document.getElementById('f_name').value=''; } }
+    async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
     
-    // PESSOAS
+    // --- EDIÇÃO DE PESSOAS ---
     async function savePeople() { 
         const id = document.getElementById('p_id_edit').value;
         const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; 
+        
         if(!n) return alert("Nome obrigatório");
-        if(id) await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id);
-        else await clientDB.from('people').insert({name:n,role:r,location:l});
-        await refreshData(); resetPeopleForm();
+
+        showLoader(true);
+        if(id) {
+            await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id);
+        } else {
+            await clientDB.from('people').insert({name:n,role:r,location:l});
+        }
+        await refreshData(); showLoader(false); resetPeopleForm();
     }
+
     function editPerson(id) {
-        const p = people.find(x => x.id == id); if(!p) return;
-        document.getElementById('p_id_edit').value = p.id; document.getElementById('p_name').value = p.name;
-        document.getElementById('p_role').value = p.role; document.getElementById('p_loc').value = p.location;
-        document.getElementById('btn_save_person').innerText = "Atualizar"; document.getElementById('btn_cancel_person').classList.remove('hidden');
+        const p = people.find(x => x.id == id);
+        if(!p) return;
+        document.getElementById('p_id_edit').value = p.id;
+        document.getElementById('p_name').value = p.name;
+        document.getElementById('p_role').value = p.role;
+        document.getElementById('p_loc').value = p.location;
+        document.getElementById('btn_save_person').innerText = "Atualizar Pessoa";
+        document.getElementById('btn_cancel_person').classList.remove('hidden');
     }
+
     function resetPeopleForm() {
-        document.getElementById('p_id_edit').value = ''; document.getElementById('p_name').value = '';
-        document.getElementById('p_role').value = ''; document.getElementById('btn_save_person').innerText = "Adicionar";
+        document.getElementById('p_id_edit').value = '';
+        document.getElementById('p_name').value = '';
+        document.getElementById('p_role').value = '';
+        document.getElementById('btn_save_person').innerText = "Adicionar Pessoa";
         document.getElementById('btn_cancel_person').classList.add('hidden');
     }
 
     async function toggleActive(table, id, currentStatus) {
-        if(confirm(currentStatus ? "Arquivar?" : "Restaurar?")) {
-            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id); await refreshData();
+        if(confirm(currentStatus ? "Arquivar registo? (Deixará de aparecer nas opções)" : "Restaurar registo?")) {
+            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id);
+            await refreshData();
         }
     }
 
     function renderFleet() { 
         const t=document.getElementById('fleet_body'); if(t) { t.innerHTML=''; 
         fleet.filter(c=>c.location === activeLocation).forEach(c => {
-            const rowClass = c.active === false ? 'archived-row' : ''; const btnIcon = c.active === false ? '♻️' : '📂';
-            t.innerHTML+=`<tr class="${rowClass}"><td>${c.name}</td><td>${c.plate}</td><td style="text-align:right"><button onclick="toggleActive('fleet',${c.id}, ${c.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
+            const rowClass = c.active === false ? 'archived-row' : '';
+            const btnIcon = c.active === false ? '♻️' : '📂';
+            t.innerHTML+=`<tr class="${rowClass}"><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td>
+            <td style="text-align:right"><button onclick="toggleActive('fleet',${c.id}, ${c.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
         }); } 
     }
     
     function renderPeople() { 
         const t=document.getElementById('people_body'); if(t) { t.innerHTML=''; 
         people.filter(p=>p.location === activeLocation).forEach(p => {
-            const rowClass = p.active === false ? 'archived-row' : ''; const btnIcon = p.active === false ? '♻️' : '📂';
+            const rowClass = p.active === false ? 'archived-row' : '';
+            const btnIcon = p.active === false ? '♻️' : '📂';
             const editBtn = `<button onclick="editPerson(${p.id})" class="action-btn">✏️</button>`;
-            t.innerHTML+=`<tr class="${rowClass}"><td>${p.name}</td><td>${p.role}</td><td style="text-align:right">${editBtn}<button onclick="toggleActive('people',${p.id}, ${p.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
+            t.innerHTML+=`<tr class="${rowClass}"><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td>
+            <td style="text-align:right">${editBtn} <button onclick="toggleActive('people',${p.id}, ${p.active})" class="action-btn">${btnIcon}</button></td></tr>`; 
         }); } 
     }
     
     async function saveUser() { 
-        const id = document.getElementById('u_id_edit').value; const u = document.getElementById('new_u_name').value;
-        const p = document.getElementById('new_u_pass').value; const r = document.getElementById('new_u_role').value; const l = document.getElementById('new_u_loc').value;
-        if(!u || !l) return alert("Dados em falta");
-        if (id) { await clientDB.from('app_users').update({username:u, password:p||undefined, role:r, location:l}).eq('id', id); } 
-        else { if(!p) return alert("Senha?"); await clientDB.from('app_users').insert({username:u, password:p, role:r, location:l}); }
-        await refreshData(); resetUserForm(); 
+        const id = document.getElementById('u_id_edit').value;
+        const u = document.getElementById('new_u_name').value;
+        const p = document.getElementById('new_u_pass').value;
+        const r = document.getElementById('new_u_role').value;
+        const l = document.getElementById('new_u_loc').value;
+        
+        if(!u || !l) return alert("Utilizador e Local são obrigatórios.");
+        if(currentUser.role === 'gerente') {
+            if(r === 'admin') return alert("Gerentes não podem criar Admins.");
+            if(l !== currentUser.location) return alert("Só pode adicionar à sua equipa (" + currentUser.location + ")");
+        }
+
+        showLoader(true);
+        if (id) {
+            const updates = { username: u, role: r, location: l };
+            if(p) updates.password = p; 
+            await clientDB.from('app_users').update(updates).eq('id', id);
+            alert("Atualizado!");
+        } else {
+            if(!p) { showLoader(false); return alert("Senha obrigatória."); }
+            await clientDB.from('app_users').insert({username:u, password:p, role:r, location:l});
+            alert("Criado!");
+        }
+        await refreshData(); resetUserForm(); showLoader(false); 
     }
+    
     function editUser(id) {
-        const user = appUsers.find(x => x.id == id); if (!user) return;
-        document.getElementById('u_id_edit').value = user.id; document.getElementById('new_u_name').value = user.username;
-        document.getElementById('new_u_pass').placeholder = "Nova senha"; document.getElementById('new_u_role').value = user.role;
-        document.getElementById('new_u_loc').value = user.location; document.getElementById('btn_save_user').innerText = "Atualizar"; document.getElementById('btn_cancel_user').classList.remove('hidden');
+        const user = appUsers.find(x => x.id == id);
+        if (!user) return;
+        document.getElementById('u_id_edit').value = user.id;
+        document.getElementById('new_u_name').value = user.username;
+        document.getElementById('new_u_pass').placeholder = "Deixe vazio para não alterar";
+        document.getElementById('new_u_role').value = user.role;
+        document.getElementById('new_u_loc').value = user.location;
+        document.getElementById('btn_save_user').innerText = "Atualizar User";
+        document.getElementById('btn_cancel_user').classList.remove('hidden');
+        if(currentUser.role === 'gerente') document.getElementById('new_u_loc').disabled = true;
     }
+    
     function resetUserForm() {
-        document.getElementById('u_id_edit').value = ''; document.getElementById('new_u_name').value = '';
-        document.getElementById('new_u_pass').value = ''; document.getElementById('btn_save_user').innerText = "Gravar";
+        document.getElementById('u_id_edit').value = '';
+        document.getElementById('new_u_name').value = '';
+        document.getElementById('new_u_pass').value = '';
+        document.getElementById('new_u_pass').placeholder = "Senha";
+        document.getElementById('btn_save_user').innerText = "Criar Conta";
         document.getElementById('btn_cancel_user').classList.add('hidden');
+        document.getElementById('new_u_loc').disabled = false;
     }
 
-    async function addLocation() { const name = document.getElementById('new_loc_name').value; if(name) { await clientDB.from('locations').insert({name:name}); await refreshData(); } }
-    function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn">✕</button></td></tr>`); } }
-    function renderUsersList() { const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u => { t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button><button onclick="delRec('app_users',${u.id})" class="action-btn">✕</button></td></tr>`; }); } }
+    async function addLocation() {
+        const name = document.getElementById('new_loc_name').value;
+        if(name) { showLoader(true); await clientDB.from('locations').insert({name:name}); await refreshData(); document.getElementById('new_loc_name').value=''; showLoader(false); }
+    }
+    function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn" style="color:red">✕</button></td></tr>`); } }
+
+    function renderUsersList() { 
+        const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; appUsers.forEach(u => { t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button><button onclick="delRec('app_users',${u.id})" class="action-btn" style="color:red">✕</button></td></tr>`; }); } 
+    }
+    
     async function delRec(table, id) { if(confirm("Apagar?")) { await clientDB.from(table).delete().eq('id',id); await refreshData(); } }
 
     function shiftTime(d) { currentDate.setDate(currentDate.getDate()+d); renderTimeline(); }
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
     function exportToExcel() {
-        let csv = "Viatura;Responsavel;Tipo;Inicio;Fim;Cliente\n";
+        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada\n";
         bookings.forEach(b => {
-            let plate = b.staticPlate || (fleet.find(f => f.id == b.vehicleId) || {plate:''}).plate;
-            csv += `${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''}\n`;
+            // Tentar usar snapshot primeiro
+            let plate = b.staticPlate;
+            if(!plate) {
+                const car = fleet.find(f => f.id == b.vehicleId) || {name:''};
+                plate = car.plate;
+            }
+            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
     }
 
     const initDates = () => {
-        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         if(document.getElementById('inp_start')) document.getElementById('inp_start').value = now.toISOString().slice(0,16);
-        const end = new Date(now); end.setHours(end.getHours()+1);
+        const end = new Date(now);
+        end.setHours(end.getHours()+1);
         if(document.getElementById('inp_end')) document.getElementById('inp_end').value = end.toISOString().slice(0,16);
     };
     initDates();
+
 </script>
 </body>
 </html>
