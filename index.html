@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v56</title>
+    <title>FleetWise Pro - v56 (Corrigido)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -710,7 +710,23 @@
 
     async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    async function addFleet() { const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l}); await refreshData(); showLoader(false); document.getElementById('f_name').value=''; } }
+    // CORRIGIDO: NOME DA FUNÇÃO DE ADD FLEET
+    async function saveFleet() { 
+        const n=document.getElementById('f_name').value;
+        const p=document.getElementById('f_plate').value;
+        const l=document.getElementById('f_loc').value; 
+        
+        if(n&&p){ 
+            showLoader(true); 
+            // Inserir fleet e verificar erro
+            const { error } = await clientDB.from('fleet').insert({name:n,plate:p,location:l});
+            if(error) { alert("Erro ao adicionar Viatura: " + error.message); }
+            else { await refreshData(); document.getElementById('f_name').value=''; document.getElementById('f_plate').value=''; }
+            showLoader(false); 
+        } else {
+            alert("Preencha Modelo e Matrícula.");
+        }
+    }
     
     // --- EDIÇÃO DE PESSOAS (ATUALIZADA) ---
     async function savePeople() { 
@@ -720,12 +736,18 @@
         if(!n) return alert("Nome obrigatório");
 
         showLoader(true);
+        let error = null;
         if(id) {
-            await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id);
+            const res = await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id);
+            error = res.error;
         } else {
-            await clientDB.from('people').insert({name:n,role:r,location:l});
+            const res = await clientDB.from('people').insert({name:n,role:r,location:l});
+            error = res.error;
         }
-        await refreshData(); showLoader(false); resetPeopleForm();
+
+        if(error) { alert("Erro ao salvar Pessoa: " + error.message); }
+        else { await refreshData(); resetPeopleForm(); }
+        showLoader(false); 
     }
 
     function editPerson(id) {
