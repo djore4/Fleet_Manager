@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v56 (Corrigido)</title>
+    <title>FleetWise Pro - v57 (Sticky Labels)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -33,7 +33,7 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
         .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* HEADER (DESKTOP) */
+        /* HEADER */
         #app-content { display: none; }
         .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -74,8 +74,9 @@
         .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
         .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; text-transform: uppercase; letter-spacing: 1px; display: none; }
 
-        /* TIMELINE */
-        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; }
+        /* TIMELINE - COM STICKY LABELS */
+        .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; scrollbar-width: none; -ms-overflow-style: none; }
+        .timeline-wrapper::-webkit-scrollbar { display: none; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
         .gantt-corner { min-width: 120px; width: 120px; background: #f1f1f1; border-right: 1px solid var(--border); position: sticky; left: 0; z-index: 30; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
         .gantt-days { flex: 1; display: flex; height: 100%; position: relative; }
@@ -86,8 +87,38 @@
         .gantt-track { flex: 1; position: relative; height: 100%; display: flex; }
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
-        .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
+        
+        /* BARRA DO GANTT COM TEXTO FLUTUANTE */
+        .gantt-bar { 
+            position: absolute; 
+            height: 36px; top: 12px; 
+            border-radius: 4px; color: white; 
+            display: flex; align-items: center; /* Alinha texto verticalmente */
+            justify-content: flex-start; /* Alinha texto à esquerda */
+            overflow: hidden; 
+            cursor: pointer; z-index: 5; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+            font-weight: 600; 
+        }
+        
+        /* O "Truque" do Texto Fixo */
+        .gantt-bar-label {
+            position: sticky; 
+            left: 5px; /* Cola-se à esquerda do ecrã */
+            padding: 0 8px;
+            white-space: nowrap;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
+
+        /* LEGENDA */
+        .legend-bar { padding: 10px; display: flex; justify-content: center; gap: 15px; font-size: 0.8rem; background: #fafafa; border-top: 1px solid #eee; flex-wrap: wrap; color: #666; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; opacity: 0.9; }
 
         /* LISTS */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); }
@@ -102,40 +133,39 @@
 
         /* ======================== MOBILE RULES ======================== */
         @media (max-width: 768px) {
-            /* 1. Header Fixo e Compacto */
             .sticky-header-group { position: sticky; top:0; z-index:2000; padding:0; }
             header { padding: 10px; justify-content: space-between; }
-            h1 { font-size: 1rem; }
-            #user-display { font-size: 0.75rem; padding: 4px 8px; position: static; } /* User ao lado do titulo */
+            h1 { font-size: 1rem; flex:1; text-align:left; }
+            #user-display { font-size: 0.75rem; padding: 4px 8px; position: static; margin-left:10px; right:auto; max-width:40%; overflow:hidden; text-overflow:ellipsis; }
             nav { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
             nav button { padding: 10px 15px; flex-shrink: 0; }
 
-            /* 2. Container Compacto */
             .view-section { padding: 10px; }
             .card { padding: 15px; margin-bottom: 10px; }
 
-            /* 3. Formulário Super Compacto (Lado a Lado) */
             .form-row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-            .form-col { flex: 1 1 45%; min-width: 120px; } /* 2 items por linha */
-            
-            /* Viatura ocupa linha inteira */
+            .form-col { flex: 1 1 45%; min-width: 120px; } 
             .form-row > .form-col:first-child:nth-last-child(1) { flex-basis: 100%; }
 
-            /* Altura reduzida para inputs e botões */
             input, select, .btn { height: 38px; font-size: 0.9rem; padding: 5px 8px; }
             label { font-size: 0.7rem; margin-bottom: 2px; }
-            
-            /* Botões de Ação na mesma linha */
             .form-col[style*="align-items:flex-end"] { flex-basis: 100%; margin-top: 5px; }
             .btn { width: 100%; }
 
-            /* 4. Timeline Ajustada */
+            .timeline-toolbar { gap: 5px; justify-content: center; }
+            .btn-nav { padding: 6px 12px; font-size: 0.8rem; }
+            
+            .gantt-header { height: 40px; }
             .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
-            .gantt-row { height: 45px; }
+            .gantt-row { height: 45px; } 
             .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
+            /* Ajuste do sticky text em mobile */
+            .gantt-bar-label { padding: 0 4px; left: 2px; }
 
-            /* 5. Filtros */
             .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
+            th, td { padding: 8px; font-size: 0.8rem; }
+            .badge { padding: 3px 6px; font-size: 0.65rem; }
+            .action-btn { padding: 4px 8px; margin-left: 2px; }
         }
     </style>
 </head>
@@ -221,6 +251,13 @@
                 <div><button class="action-btn" onclick="changeZoom(-20)">-</button><button class="action-btn" onclick="changeZoom(20)">+</button></div>
             </div>
             <div class="timeline-wrapper"><div id="gantt_header" class="gantt-header"></div><div id="gantt_body"></div></div>
+            
+            <div class="legend-bar">
+                <span class="legend-item"><span class="color-dot" style="background:#28a745"></span>Test-drive</span>
+                <span class="legend-item"><span class="color-dot" style="background:#17a2b8"></span>Empréstimo</span>
+                <span class="legend-item"><span class="color-dot" style="background:#fd7e14"></span>Serviço</span>
+                <span class="legend-item"><span class="color-dot" style="background:#dc3545"></span>Indisponível</span>
+            </div>
         </div>
     </section>
 
@@ -256,18 +293,15 @@
         <div class="card" style="border-left:5px solid var(--secondary)">
             <h3>Pessoas</h3>
             <input type="hidden" id="p_id_edit">
-            
             <div class="form-row">
                 <div class="form-col"><input id="p_name" placeholder="Nome"></div>
                 <div class="form-col"><input id="p_role" placeholder="Cargo"></div>
                 <div class="form-col"><select id="p_loc"></select></div>
             </div>
-            
             <div style="display:flex; gap:10px;">
                 <button class="btn btn-save" id="btn_save_person" style="background:var(--secondary); flex:1" onclick="savePeople()">Adicionar Pessoa</button>
                 <button class="btn btn-cancel hidden" id="btn_cancel_person" style="flex:1" onclick="resetPeopleForm()">Cancelar</button>
             </div>
-
             <div class="table-wrap" style="margin-top:20px;"><table width="100%"><thead><tr><th>Local</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="people_body"></tbody></table></div>
         </div>
     </section>
@@ -388,7 +422,6 @@
     }
 
     async function refreshData() {
-        // Limpar arrays para evitar duplicados
         fleet = []; people = []; bookings = []; allLocations = [];
 
         const [f, p, b, l] = await Promise.all([
@@ -403,18 +436,16 @@
         if (b.error) throw b.error; bookings = b.data || [];
         if (l.error) throw l.error; allLocations = l.data || [];
         
-        // ORDENAÇÃO A-Z
         fleet.sort((a,b) => a.name.localeCompare(b.name));
         people.sort((a,b) => a.name.localeCompare(b.name));
         allLocations.sort((a,b) => a.name.localeCompare(b.name));
 
-        // SNAPSHOT: Se tiver static_plate (snapshot), usa. Senão usa o plate da relação.
         bookings = bookings.map(x => ({
             id:x.id, vehicleId:x.vehicle_id, userId:x.user_id, 
-            userName:x.user_name, // Nome da Pessoa no momento da reserva
+            userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
-            staticPlate: x.static_plate, staticModel: x.static_model // Snapshot
+            staticPlate: x.static_plate, staticModel: x.static_model
         }));
 
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'gerente')) {
@@ -429,7 +460,6 @@
         
         if(currentUser && currentUser.role === 'admin') renderAdminLocTabs();
         
-        // INICIAR COM DATAS CORRETAS
         setDefaultDates();
     }
 
@@ -481,7 +511,6 @@
         const sCar = document.getElementById('inp_vehicle'); if(sCar) sCar.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         const sDriver = document.getElementById('inp_driver'); if(sDriver) sDriver.innerHTML = '<option value="" disabled selected>-- Selecione --</option>';
         
-        // MOSTRAR APENAS ATIVOS NO DROPDOWN
         if(sCar) fleet.filter(c => c.location === activeLocation && c.active !== false).forEach(c => sCar.add(new Option(`${c.name} (${c.plate})`, c.id)));
         
         if(sDriver) {
@@ -506,12 +535,10 @@
 
         if(!end) return alert("Data de fim obrigatória.");
 
-        // NOME DA PESSOA
         const driverId = getVal('inp_driver');
         const selectedPerson = people.find(p => String(p.id) === String(driverId));
         const driverName = selectedPerson ? selectedPerson.name : currentUser.username;
 
-        // SNAPSHOT DA VIATURA
         const carId = getVal('inp_vehicle');
         const selectedCar = fleet.find(f => String(f.id) === String(carId));
         const staticPlate = selectedCar ? selectedCar.plate : '';
@@ -525,8 +552,8 @@
             end_time: end,
             location: activeLocation, 
             user_name: driverName,
-            static_plate: staticPlate, // Snapshot
-            static_model: staticModel, // Snapshot
+            static_plate: staticPlate,
+            static_model: staticModel,
             client_name: getVal('inp_client_name'),
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
@@ -570,7 +597,7 @@
         document.getElementById('inp_type').value = "";
         
         setDefaultDates();
-        updateSelects(); // Reseta os selects para "-- Selecione --"
+        updateSelects(); 
     }
 
     function toggleExtraFields() { 
@@ -624,7 +651,6 @@
         const days = Math.ceil((document.querySelector('.timeline-wrapper').offsetWidth || 800) / zoomLevel) + 2;
         const msDay = 86400000;
         
-        // CALCULO DA LINHA 'AGORA'
         const now = new Date();
         const diff = now - start;
         let nowLineHtml = '';
@@ -643,7 +669,6 @@
 
         body.innerHTML = '';
         fleet.filter(c => c.location === activeLocation).forEach(c => {
-            // MOSTRAR MESMO SE ESTIVER ARQUIVADO (PARA HISTORICO)
             let row = `<div class="gantt-row"><div class="gantt-label">${c.plate}<br><small>${c.name.substring(0,8)}</small></div><div class="gantt-track">`;
             row += nowLineHtml;
             for(let i=0; i<days; i++) row += `<div class="gantt-guide" style="min-width:${zoomLevel}px; border-left:1px solid #f9f9f9"></div>`;
@@ -654,11 +679,12 @@
                 let width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                
-                // NOME NA BARRA (TEST-DRIVE = CLIENTE, OUTROS = RESPONSAVEL)
                 let label = (b.type === 'Test-drive') ? (b.clientName || 'Cliente') : b.userName;
                 
-                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">${label}</div>`;
+                // NOVO: SPAN com class "gantt-bar-label" que tem position: sticky
+                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">
+                            <span class="gantt-bar-label">${label}</span>
+                        </div>`;
             });
             body.innerHTML += row + `</div></div>`;
         });
@@ -674,7 +700,6 @@
         bookings.forEach(b => {
             if(b.location !== activeLocation && currentUser.role !== 'admin') return;
 
-            // TENTAR USAR SNAPSHOT, FALLBACK PARA RELAÇÃO ATUAL
             let plate = b.staticPlate;
             let model = b.staticModel;
             
@@ -710,70 +735,41 @@
 
     async function delBooking(id) { if(confirm("Apagar?")) { showLoader(true); await clientDB.from('bookings').delete().eq('id', id); await refreshData(); showLoader(false); } }
 
-    // CORRIGIDO: NOME DA FUNÇÃO DE ADD FLEET
     async function saveFleet() { 
         const n=document.getElementById('f_name').value;
         const p=document.getElementById('f_plate').value;
         const l=document.getElementById('f_loc').value; 
-        
-        if(n&&p){ 
-            showLoader(true); 
-            // Inserir fleet e verificar erro
-            const { error } = await clientDB.from('fleet').insert({name:n,plate:p,location:l});
-            if(error) { alert("Erro ao adicionar Viatura: " + error.message); }
-            else { await refreshData(); document.getElementById('f_name').value=''; document.getElementById('f_plate').value=''; }
-            showLoader(false); 
-        } else {
-            alert("Preencha Modelo e Matrícula.");
-        }
+        if(n&&p){ showLoader(true); const { error } = await clientDB.from('fleet').insert({name:n,plate:p,location:l}); if(error) alert(error.message); else { await refreshData(); document.getElementById('f_name').value=''; document.getElementById('f_plate').value=''; } showLoader(false); } 
+        else alert("Preencha Modelo e Matrícula.");
     }
     
-    // --- EDIÇÃO DE PESSOAS (ATUALIZADA) ---
     async function savePeople() { 
         const id = document.getElementById('p_id_edit').value;
         const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; 
-        
         if(!n) return alert("Nome obrigatório");
-
-        showLoader(true);
-        let error = null;
-        if(id) {
-            const res = await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id);
-            error = res.error;
-        } else {
-            const res = await clientDB.from('people').insert({name:n,role:r,location:l});
-            error = res.error;
-        }
-
-        if(error) { alert("Erro ao salvar Pessoa: " + error.message); }
-        else { await refreshData(); resetPeopleForm(); }
-        showLoader(false); 
+        showLoader(true); let error = null;
+        if(id) { const res = await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id); error = res.error; } 
+        else { const res = await clientDB.from('people').insert({name:n,role:r,location:l}); error = res.error; }
+        if(error) alert(error.message); else { await refreshData(); resetPeopleForm(); } showLoader(false); 
     }
 
     function editPerson(id) {
-        const p = people.find(x => x.id == id);
-        if(!p) return;
-        document.getElementById('p_id_edit').value = p.id;
-        document.getElementById('p_name').value = p.name;
-        document.getElementById('p_role').value = p.role;
-        document.getElementById('p_loc').value = p.location;
+        const p = people.find(x => x.id == id); if(!p) return;
+        document.getElementById('p_id_edit').value = p.id; document.getElementById('p_name').value = p.name;
+        document.getElementById('p_role').value = p.role; document.getElementById('p_loc').value = p.location;
         document.getElementById('btn_save_person').innerText = "Atualizar Pessoa";
         document.getElementById('btn_cancel_person').classList.remove('hidden');
     }
 
     function resetPeopleForm() {
-        document.getElementById('p_id_edit').value = '';
-        document.getElementById('p_name').value = '';
-        document.getElementById('p_role').value = '';
-        document.getElementById('btn_save_person').innerText = "Adicionar Pessoa";
+        document.getElementById('p_id_edit').value = ''; document.getElementById('p_name').value = '';
+        document.getElementById('p_role').value = ''; document.getElementById('btn_save_person').innerText = "Adicionar Pessoa";
         document.getElementById('btn_cancel_person').classList.add('hidden');
     }
 
-    // SOFT DELETE / ARQUIVAR
     async function toggleActive(table, id, currentStatus) {
-        if(confirm(currentStatus ? "Arquivar registo? (Deixará de aparecer nas opções)" : "Restaurar registo?")) {
-            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id);
-            await refreshData();
+        if(confirm(currentStatus ? "Arquivar registo?" : "Restaurar registo?")) {
+            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id); await refreshData();
         }
     }
 
@@ -804,12 +800,8 @@
         const p = document.getElementById('new_u_pass').value;
         const r = document.getElementById('new_u_role').value;
         const l = document.getElementById('new_u_loc').value;
-        
-        if(!u || !l) return alert("Utilizador e Local são obrigatórios.");
-        if(currentUser.role === 'gerente') {
-            if(r === 'admin') return alert("Gerentes não podem criar Admins.");
-            if(l !== currentUser.location) return alert("Só pode adicionar à sua equipa (" + currentUser.location + ")");
-        }
+        if(!u || !l) return alert("Utilizador e Local obrigatórios.");
+        if(currentUser.role === 'gerente' && (r === 'admin' || l !== currentUser.location)) return alert("Sem permissão.");
 
         showLoader(true);
         if (id) {
@@ -826,25 +818,19 @@
     }
     
     function editUser(id) {
-        const user = appUsers.find(x => x.id == id);
-        if (!user) return;
-        document.getElementById('u_id_edit').value = user.id;
-        document.getElementById('new_u_name').value = user.username;
+        const user = appUsers.find(x => x.id == id); if (!user) return;
+        document.getElementById('u_id_edit').value = user.id; document.getElementById('new_u_name').value = user.username;
         document.getElementById('new_u_pass').placeholder = "Deixe vazio para não alterar";
-        document.getElementById('new_u_role').value = user.role;
-        document.getElementById('new_u_loc').value = user.location;
+        document.getElementById('new_u_role').value = user.role; document.getElementById('new_u_loc').value = user.location;
         document.getElementById('btn_save_user').innerText = "Atualizar User";
         document.getElementById('btn_cancel_user').classList.remove('hidden');
         if(currentUser.role === 'gerente') document.getElementById('new_u_loc').disabled = true;
     }
     
     function resetUserForm() {
-        document.getElementById('u_id_edit').value = '';
-        document.getElementById('new_u_name').value = '';
-        document.getElementById('new_u_pass').value = '';
-        document.getElementById('new_u_pass').placeholder = "Senha";
-        document.getElementById('btn_save_user').innerText = "Criar Conta";
-        document.getElementById('btn_cancel_user').classList.add('hidden');
+        document.getElementById('u_id_edit').value = ''; document.getElementById('new_u_name').value = '';
+        document.getElementById('new_u_pass').value = ''; document.getElementById('new_u_pass').placeholder = "Senha";
+        document.getElementById('btn_save_user').innerText = "Criar Conta"; document.getElementById('btn_cancel_user').classList.add('hidden');
         document.getElementById('new_u_loc').disabled = false;
     }
 
@@ -866,12 +852,8 @@
     function exportToExcel() {
         let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada\n";
         bookings.forEach(b => {
-            // Tentar usar snapshot primeiro
             let plate = b.staticPlate;
-            if(!plate) {
-                const car = fleet.find(f => f.id == b.vehicleId) || {name:''};
-                plate = car.plate;
-            }
+            if(!plate) { const car = fleet.find(f => f.id == b.vehicleId) || {name:''}; plate = car.plate; }
             csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -879,11 +861,9 @@
     }
 
     const initDates = () => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         if(document.getElementById('inp_start')) document.getElementById('inp_start').value = now.toISOString().slice(0,16);
-        const end = new Date(now);
-        end.setHours(end.getHours()+1);
+        const end = new Date(now); end.setHours(end.getHours()+1);
         if(document.getElementById('inp_end')) document.getElementById('inp_end').value = end.toISOString().slice(0,16);
     };
     initDates();
