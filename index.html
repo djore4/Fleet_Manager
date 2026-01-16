@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v57 (Sticky Labels)</title>
+    <title>FleetWise Pro - v58 (Sticky Fix)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -74,7 +74,7 @@
         .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
         .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; text-transform: uppercase; letter-spacing: 1px; display: none; }
 
-        /* TIMELINE - COM STICKY LABELS */
+        /* TIMELINE - COM TEXTO FLUTUANTE (STICKY) */
         .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; scrollbar-width: none; -ms-overflow-style: none; }
         .timeline-wrapper::-webkit-scrollbar { display: none; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
@@ -93,8 +93,8 @@
             position: absolute; 
             height: 36px; top: 12px; 
             border-radius: 4px; color: white; 
-            display: flex; align-items: center; /* Alinha texto verticalmente */
-            justify-content: flex-start; /* Alinha texto à esquerda */
+            display: block; /* Alterado para block para o sticky funcionar */
+            line-height: 36px; /* Alinhamento vertical do texto */
             overflow: hidden; 
             cursor: pointer; z-index: 5; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
@@ -108,15 +108,12 @@
             padding: 0 8px;
             white-space: nowrap;
             display: inline-block;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LEGENDA */
-        .legend-bar { padding: 10px; display: flex; justify-content: center; gap: 15px; font-size: 0.8rem; background: #fafafa; border-top: 1px solid #eee; flex-wrap: wrap; color: #666; }
+        .legend-bar { padding: 10px; display: flex; justify-content: center; gap: 15px; font-size: 0.8rem; background: #fafafa; border-top: 1px solid #eee; flex-wrap: wrap; color: #666; margin-top: auto;}
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; opacity: 0.9; }
 
@@ -158,8 +155,7 @@
             .gantt-header { height: 40px; }
             .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
             .gantt-row { height: 45px; } 
-            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
-            /* Ajuste do sticky text em mobile */
+            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; line-height: 28px; } /* Ajuste line-height mobile */
             .gantt-bar-label { padding: 0 4px; left: 2px; }
 
             .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
@@ -679,10 +675,12 @@
                 let width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                let label = (b.type === 'Test-drive') ? (b.clientName || 'Cliente') : b.userName;
+                
+                // NOME NA BARRA (SEMPRE O RESPONSÁVEL)
+                let label = b.userName || 'S/ Nome';
                 
                 // NOVO: SPAN com class "gantt-bar-label" que tem position: sticky
-                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label}">
+                row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label} - ${b.clientName||''}">
                             <span class="gantt-bar-label">${label}</span>
                         </div>`;
             });
