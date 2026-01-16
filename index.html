@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v60 (Sticky & Grey)</title>
+    <title>FleetWise Pro - v61 (Obs & Security)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -18,10 +18,7 @@
             --archived: #adb5bd;
             
             /* Cores de Estado */
-            --c-test: #28a745;
-            --c-loan: #17a2b8;
-            --c-serv: #6c757d; /* AGORA CINZENTO */
-            --c-unav: #dc3545;
+            --c-test: #28a745; --c-loan: #17a2b8; --c-serv: #6c757d; --c-unav: #dc3545;
         }
 
         * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -32,19 +29,25 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* LOGIN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
-        .login-box h2 { color: var(--primary); margin-top: 0; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-        .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        /* MODAIS (LOGIN & PROFILE) */
+        .modal-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
+        .modal-box h2 { color: var(--primary); margin-top: 0; }
+        .modal-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .modal-box button { width: 100%; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 5px; }
+        
+        #login-screen { background: var(--primary); }
+        #login-screen .modal-box button { background: var(--primary); color: white; }
+        
+        #profile-modal { display: none; z-index: 5500; }
         
         /* HEADER */
         #app-content { display: none; }
         .sticky-header-group { position: sticky; top: 0; z-index: 1000; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header { background: var(--primary); color: var(--white); padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
         h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
-        #user-display { position: absolute; right: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+        #user-display { position: absolute; right: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; display:flex; align-items:center; gap:5px; }
+        #user-display:hover { background: rgba(255,255,255,0.3); }
 
         nav { display: flex; justify-content: center; background: #fff; overflow-x: auto; border-bottom: 1px solid var(--border); }
         nav button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
@@ -62,7 +65,10 @@
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-col { flex: 1; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.8rem; color: #495057; text-transform: uppercase; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; height: 45px; background: #fff; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; background: #fff; }
+        input, select { height: 45px; }
+        textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+        
         #extra_fields { background-color: #f8f9fa; border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin-bottom: 20px; display: none; }
         #extra_fields.show { display: block; }
 
@@ -94,31 +100,8 @@
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         
-        /* BARRA DO GANTT COM TEXTO FLUTUANTE (STICKY) */
-        .gantt-bar { 
-            position: absolute; 
-            height: 36px; top: 12px; 
-            border-radius: 4px; 
-            color: white; 
-            /* Flexbox permite alinhar o sticky child */
-            display: flex; 
-            align-items: center; 
-            overflow: hidden; 
-            cursor: pointer; 
-            z-index: 5; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
-            font-weight: 600; 
-        }
-        
-        .gantt-bar-label { 
-            position: sticky; 
-            left: 0px; /* Cola-se à esquerda do contentor de scroll */
-            padding-left: 8px; 
-            padding-right: 8px;
-            white-space: nowrap; 
-            display: inline-block;
-        }
-
+        .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; display: flex; align-items: center; overflow: hidden; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
+        .gantt-bar-label { position: sticky; left: 0px; padding: 0 8px; white-space: nowrap; display: inline-block; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LEGENDA */
@@ -133,13 +116,13 @@
         th, td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         th { background: #f8f9fa; font-weight: 700; text-align: left; }
         
-        /* SORTABLE HEADERS */
         th.sortable { cursor: pointer; user-select: none; }
         th.sortable:hover { background-color: #e9ecef; }
         .sort-icon { display: inline-block; margin-left: 5px; font-size: 0.8rem; color: #999; }
         
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
         .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
+        .obs-note { display:block; margin-top:5px; font-size:0.8rem; color:#666; font-style:italic; }
         .archived-row { opacity: 0.6; background-color: #f9f9f9; }
         .archived-row td { text-decoration: line-through; color: #999; }
 
@@ -158,6 +141,8 @@
             .form-row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
             .form-col { flex: 1 1 45%; min-width: 120px; } 
             .form-row > .form-col:first-child:nth-last-child(1) { flex-basis: 100%; }
+            /* Observações ocupam sempre a largura total */
+            .form-col.full-width { flex-basis: 100% !important; }
 
             input, select, .btn { height: 38px; font-size: 0.9rem; padding: 5px 8px; }
             label { font-size: 0.7rem; margin-bottom: 2px; }
@@ -184,8 +169,8 @@
 
 <div id="loader"><div class="spinner"></div><p style="margin-top:10px;color:#666;">A carregar...</p></div>
 
-<div id="login-screen">
-    <div class="login-box">
+<div id="login-screen" class="modal-screen">
+    <div class="modal-box">
         <h2>FleetWise</h2>
         <p>Gestão de Viaturas</p>
         <input type="text" id="u" placeholder="Utilizador">
@@ -194,11 +179,27 @@
     </div>
 </div>
 
+<div id="profile-modal" class="modal-screen">
+    <div class="modal-box">
+        <h2>O meu Perfil</h2>
+        <p id="prof_name_disp" style="font-weight:bold; margin-bottom:20px;"></p>
+        
+        <label style="text-align:left; display:block">Alterar Senha</label>
+        <input type="password" id="new_self_pass" placeholder="Nova senha (deixe vazio para manter)">
+        
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="updateProfile()" style="background:var(--primary); color:white; flex:1">Guardar</button>
+            <button onclick="closeProfile()" style="background:#ccc; color:#333; flex:1">Fechar</button>
+        </div>
+        <button onclick="doLogout()" style="background:var(--danger); color:white; margin-top:20px; width:100%">Terminar Sessão</button>
+    </div>
+</div>
+
 <div id="app-content">
     <div class="sticky-header-group">
         <header>
             <h1>Gestão de Viaturas</h1>
-            <div id="user-display" onclick="location.reload()">👤 <span id="user_label">...</span> (Sair)</div>
+            <div id="user-display" onclick="openProfile()">👤 <span id="user_label">...</span> <span style="font-size:0.7em">▼</span></div>
         </header>
         
         <nav>
@@ -246,6 +247,13 @@
                     <div class="form-col"><label>Cód. Postal</label><input id="inp_client_zip"></div>
                     <div class="form-col"><label>Localidade</label><input id="inp_client_city"></div>
                     <div class="form-col"><label>Carta Condução</label><input id="inp_client_license"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col full-width" style="flex:100%">
+                    <label>Observações</label>
+                    <textarea id="inp_obs" placeholder="Notas sobre o estado do carro, motivo, etc..."></textarea>
                 </div>
             </div>
 
@@ -371,19 +379,38 @@
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [], allLocations = [];
     
-    // VARIÁVEL DE ESTADO PARA ORDENAÇÃO
     let sortState = { col: 'start', dir: 'asc' };
 
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
     
-    // CORES ATUALIZADAS (Serviço = Cinzento)
+    // CORES (Serviço = Cinzento)
     const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#6c757d', 'Indisponível':'#dc3545' };
     
     let activeLocation = 'Gaia'; 
     let currentDate = new Date(), zoomLevel = 100;
 
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+
+    // --- PROFILE & AUTH ---
+    function openProfile() {
+        if(!currentUser) return;
+        document.getElementById('prof_name_disp').innerText = currentUser.username;
+        document.getElementById('new_self_pass').value = '';
+        document.getElementById('profile-modal').style.display = 'flex';
+    }
+    function closeProfile() { document.getElementById('profile-modal').style.display = 'none'; }
+    function doLogout() { location.reload(); }
+    
+    async function updateProfile() {
+        const pass = document.getElementById('new_self_pass').value;
+        if(!pass) return alert("Nada alterado.");
+        showLoader(true);
+        const { error } = await clientDB.from('app_users').update({password: pass, updated_by: currentUser.username}).eq('id', currentUser.id);
+        showLoader(false);
+        if(error) alert("Erro: " + error.message);
+        else { alert("Senha alterada!"); closeProfile(); }
+    }
 
     async function tentarLogin() {
         if (typeof window.supabase === 'undefined') return alert("Erro de Rede: Supabase não carregou");
@@ -475,6 +502,8 @@
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
             clientZip: x.client_zip, clientCity: x.client_city, clientLicense: x.client_license,
+            notes: x.notes, // Observações
+            updatedBy: x.updated_by, // Auditoria
             staticPlate: x.static_plate, staticModel: x.static_model
         }));
 
@@ -591,7 +620,9 @@
             client_bi: getVal('inp_client_bi'),
             client_zip: getVal('inp_client_zip'),
             client_city: getVal('inp_client_city'),
-            client_license: getVal('inp_client_license')
+            client_license: getVal('inp_client_license'),
+            notes: getVal('inp_obs'), // OBSERVAÇÕES
+            updated_by: currentUser.username // AUDITORIA
         };
         
         const idStr = getVal('booking_id');
@@ -621,7 +652,7 @@
     }
 
     function resetForm() {
-        ['booking_id','inp_vehicle','inp_driver','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi','inp_client_zip','inp_client_city','inp_client_license'].forEach(i=>{
+        ['booking_id','inp_vehicle','inp_driver','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi','inp_client_zip','inp_client_city','inp_client_license','inp_obs'].forEach(i=>{
             const el = document.getElementById(i); if(el) el.value='';
         });
         document.getElementById('btn_save').innerText = "AGENDAR";
@@ -673,6 +704,7 @@
         setVal('inp_client_zip', b.clientZip);
         setVal('inp_client_city', b.clientCity);
         setVal('inp_client_license', b.clientLicense);
+        setVal('inp_obs', b.notes); // OBSERVAÇÕES
         
         toggleExtraFields();
         document.getElementById('btn_save').innerText = "ATUALIZAR";
@@ -785,11 +817,15 @@
             if(b.clientName) {
                 clientData = `<div class="client-info"><b>${b.clientName}</b><br>📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>🏠 ${b.clientAddr || ''} ${b.clientZip||''} ${b.clientCity||''}</div>`;
             }
+            
+            // OBSERVAÇÕES E AUDITORIA
+            let obsHtml = b.notes ? `<div class="obs-note">📝 ${b.notes}</div>` : '';
+            let auditHtml = b.updatedBy ? `<div style="font-size:0.7rem; color:#999; margin-top:3px;">Editado por: ${b.updatedBy}</div>` : '';
 
             tb.innerHTML += `<tr>
                 <td><b>${b.location}</b></td>
                 <td><b>${b.tempPlate}</b><br><small>${b.tempModel}</small></td>
-                <td>${b.userName} ${clientData}</td>
+                <td>${b.userName} ${clientData} ${obsHtml} ${auditHtml}</td>
                 <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
                 <td><small>${date}</small></td>
                 <td style="text-align:right">${editBtn} ${delBtn}</td>
@@ -803,7 +839,7 @@
         const n=document.getElementById('f_name').value;
         const p=document.getElementById('f_plate').value;
         const l=document.getElementById('f_loc').value; 
-        if(n&&p){ showLoader(true); const { error } = await clientDB.from('fleet').insert({name:n,plate:p,location:l}); if(error) alert(error.message); else { await refreshData(); document.getElementById('f_name').value=''; document.getElementById('f_plate').value=''; } showLoader(false); } 
+        if(n&&p){ showLoader(true); const { error } = await clientDB.from('fleet').insert({name:n,plate:p,location:l, updated_by:currentUser.username}); if(error) alert(error.message); else { await refreshData(); document.getElementById('f_name').value=''; document.getElementById('f_plate').value=''; } showLoader(false); } 
         else alert("Preencha Modelo e Matrícula.");
     }
     
@@ -812,8 +848,8 @@
         const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value; 
         if(!n) return alert("Nome obrigatório");
         showLoader(true); let error = null;
-        if(id) { const res = await clientDB.from('people').update({name:n,role:r,location:l}).eq('id', id); error = res.error; } 
-        else { const res = await clientDB.from('people').insert({name:n,role:r,location:l}); error = res.error; }
+        if(id) { const res = await clientDB.from('people').update({name:n,role:r,location:l, updated_by:currentUser.username}).eq('id', id); error = res.error; } 
+        else { const res = await clientDB.from('people').insert({name:n,role:r,location:l, updated_by:currentUser.username}); error = res.error; }
         if(error) alert(error.message); else { await refreshData(); resetPeopleForm(); } showLoader(false); 
     }
 
@@ -833,7 +869,7 @@
 
     async function toggleActive(table, id, currentStatus) {
         if(confirm(currentStatus ? "Arquivar registo?" : "Restaurar registo?")) {
-            await clientDB.from(table).update({ active: !currentStatus }).eq('id', id); await refreshData();
+            await clientDB.from(table).update({ active: !currentStatus, updated_by:currentUser.username }).eq('id', id); await refreshData();
         }
     }
 
@@ -869,13 +905,13 @@
 
         showLoader(true);
         if (id) {
-            const updates = { username: u, role: r, location: l };
+            const updates = { username: u, role: r, location: l, updated_by:currentUser.username };
             if(p) updates.password = p; 
             await clientDB.from('app_users').update(updates).eq('id', id);
             alert("Atualizado!");
         } else {
             if(!p) { showLoader(false); return alert("Senha obrigatória."); }
-            await clientDB.from('app_users').insert({username:u, password:p, role:r, location:l});
+            await clientDB.from('app_users').insert({username:u, password:p, role:r, location:l, updated_by:currentUser.username});
             alert("Criado!");
         }
         await refreshData(); resetUserForm(); showLoader(false); 
@@ -900,7 +936,7 @@
 
     async function addLocation() {
         const name = document.getElementById('new_loc_name').value;
-        if(name) { showLoader(true); await clientDB.from('locations').insert({name:name}); await refreshData(); document.getElementById('new_loc_name').value=''; showLoader(false); }
+        if(name) { showLoader(true); await clientDB.from('locations').insert({name:name, updated_by:currentUser.username}); await refreshData(); document.getElementById('new_loc_name').value=''; showLoader(false); }
     }
     function renderLocsList() { const t=document.getElementById('locs_list'); if(t) { t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.name}</td><td><button onclick="delRec('locations',${l.id})" class="action-btn">✕</button></td></tr>`); } }
 
@@ -914,11 +950,13 @@
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
     function exportToExcel() {
-        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada;CP;Localidade;CartaCond\n";
+        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada;CP;Localidade;CartaCond;Observacoes;UltimaEdicao\n";
         bookings.forEach(b => {
             let plate = b.staticPlate;
             if(!plate) { const car = fleet.find(f => f.id == b.vehicleId) || {name:''}; plate = car.plate; }
-            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''};${b.clientZip||''};${b.clientCity||''};${b.clientLicense||''}\n`;
+            // Sanitizar texto para CSV (remover quebras de linha nas obs)
+            let safeObs = (b.notes || '').replace(/(\r\n|\n|\r)/gm, " ");
+            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''};${b.clientZip||''};${b.clientCity||''};${b.clientLicense||''};${safeObs};${b.updatedBy||''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
