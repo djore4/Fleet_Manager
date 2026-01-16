@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v63.1 (Fixed)</title>
+    <title>FleetWise Pro - v64 (Permission Matrix)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -77,13 +77,22 @@
         .loc-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; background: #f8f9fa; color: #666; border:none; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; }
         .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
 
-        /* PERMISSION GRID */
-        .perm-grid { display: grid; grid-template-columns: 1fr 80px 80px; gap: 10px; border: 1px solid #eee; padding: 15px; border-radius: 4px; background: #fafafa; margin-bottom: 20px; }
-        .perm-header { font-weight: bold; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 5px; }
-        .perm-row { display: contents; }
-        .perm-label { padding: 8px 0; font-size: 0.9rem; font-weight: 600; display:flex; align-items:center; }
-        .perm-check { display: flex; justify-content: center; align-items: center; background: white; border: 1px solid #ddd; margin: 2px 0; }
-        .perm-section-title { grid-column: 1 / -1; font-weight: bold; color: var(--primary); margin-top: 15px; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
+        /* --- PERMISSION MATRIX TABLE --- */
+        .matrix-wrap { overflow-x: auto; border: 1px solid #eee; border-radius: 4px; margin-bottom: 20px; }
+        .perm-table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 0.9rem; }
+        .perm-table th, .perm-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        .perm-table th { background: #f8f9fa; color: #555; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
+        .perm-table td:first-child { text-align: left; font-weight: bold; background: #fafafa; width: 150px; }
+        
+        .perm-check-group { display: flex; gap: 8px; justify-content: center; }
+        .perm-toggle { cursor: pointer; opacity: 0.3; font-size: 1.2rem; user-select: none; transition: 0.2s; }
+        .perm-toggle.active { opacity: 1; transform: scale(1.1); }
+        .perm-toggle-r.active { color: var(--secondary); }
+        .perm-toggle-w.active { color: var(--danger); }
+
+        /* GLOBAL PERMISSIONS */
+        .global-perms { display: flex; gap: 20px; padding: 15px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+        .gp-item { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.9rem; }
 
         /* TIMELINE & LISTS */
         .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; scrollbar-width: none; }
@@ -321,17 +330,16 @@
                 <div class="form-col"><label>Local Base</label><select id="new_u_loc"></select></div>
             </div>
             
-            <div class="perm-grid" id="perm-grid">
-                <div class="perm-header">Módulo / Local</div><div class="perm-header text-center">Ver</div><div class="perm-header text-center">Editar</div>
-                
-                <div class="perm-section-title">Módulos</div>
-                <div class="perm-row" data-key="fleet"><div class="perm-label">Viaturas</div><div class="perm-check"><input type="checkbox" class="chk-r"></div><div class="perm-check"><input type="checkbox" class="chk-w"></div></div>
-                <div class="perm-row" data-key="people"><div class="perm-label">Pessoas</div><div class="perm-check"><input type="checkbox" class="chk-r"></div><div class="perm-check"><input type="checkbox" class="chk-w"></div></div>
-                <div class="perm-row" data-key="users"><div class="perm-label">Equipa</div><div class="perm-check"><input type="checkbox" class="chk-r"></div><div class="perm-check"><input type="checkbox" class="chk-w"></div></div>
-                <div class="perm-row" data-key="locs"><div class="perm-label">Config Locais</div><div class="perm-check"><input type="checkbox" class="chk-r"></div><div class="perm-check"><input type="checkbox" class="chk-w"></div></div>
-                
-                <div class="perm-section-title">Locais</div>
-                <div id="perm-locs-rows" style="display:contents"></div>
+            <h4 style="margin-bottom:10px; color:#555;">Matriz de Permissões (Local x Módulo)</h4>
+            <div class="matrix-wrap">
+                <table class="perm-table" id="perm-matrix-table">
+                    </table>
+            </div>
+
+            <h4 style="margin-bottom:10px; color:#555;">Permissões Globais</h4>
+            <div class="global-perms">
+                <div class="gp-item"><span class="perm-toggle perm-toggle-w" id="gp_users" onclick="togglePerm(this)">✏️</span> Gerir Equipa</div>
+                <div class="gp-item"><span class="perm-toggle perm-toggle-w" id="gp_locs" onclick="togglePerm(this)">✏️</span> Configurar Locais</div>
             </div>
 
             <button class="btn btn-save" id="btn_save_user" style="background:#FFC107; color:black" onclick="saveUser()">Gravar Utilizador</button>
@@ -364,14 +372,24 @@
     function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
     // --- PERMISSION LOGIC ---
-    function hasPerm(type, key) {
+    // hasPerm('read', 'fleet', 'Gaia')
+    function hasPerm(type, module, loc) {
         if(!currentUser || !currentUser.permissions) return false;
-        // Super Admin fallback: se tiver {all:true}
-        if(currentUser.permissions.all) return true;
+        if(currentUser.permissions.all) return true; // Super Admin old logic support
         
-        const p = currentUser.permissions[key]; 
+        // GLOBAL CHECKS
+        if(module === 'users' || module === 'locs') {
+            const p = currentUser.permissions[module];
+            if(p === 'rw') return true;
+            return false; // Global modules strictly require 'rw'
+        }
+
+        // MATRIX CHECKS
+        // Key format: "Gaia_fleet"
+        const key = `${loc}_${module}`;
+        const p = currentUser.permissions[key];
         if(!p) return false;
-        
+
         if (type === 'read') return p === 'r' || p === 'rw';
         if (type === 'write') return p === 'rw';
         return false;
@@ -398,18 +416,18 @@
             if (error || !user) throw new Error("Dados incorretos.");
             currentUser = user;
             
-            // Se não tiver permissões definidas (legado), assume com base na role antiga para não bloquear
+            // Legacy Permission Support
             if (!currentUser.permissions) {
                 if(user.role === 'admin') currentUser.permissions = { all: true };
-                else if(user.role === 'vendedor') currentUser.permissions = { [user.location]:'r' };
-                else currentUser.permissions = { [user.location]:'rw', fleet:'rw', people:'rw' };
+                else currentUser.permissions = {}; // Default no permissions
             }
 
-            // Define local inicial (primeiro local que tem permissão)
-            await refreshData(); // Carrega locais primeiro
-            const allowedLocs = allLocations.filter(l => hasPerm('read', l.name));
-            if(allowedLocs.length > 0) activeLocation = allowedLocs[0].name;
-            else activeLocation = user.location || 'Gaia';
+            // Define local inicial
+            await refreshData(); 
+            // Find first location with read access to Dashboard (bookings)
+            const allowedLoc = allLocations.find(l => hasPerm('read', 'bookings', l.name));
+            if(allowedLoc) activeLocation = allowedLoc.name;
+            else activeLocation = user.location || (allLocations[0] ? allLocations[0].name : 'Gaia');
 
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
@@ -417,27 +435,30 @@
             
             aplicarPermissoesUI();
             renderLocTabs();
-            await refreshData(); // Recarrega dados com o local definido
+            await refreshData();
 
         } catch (err) { alert(err.message); } finally { showLoader(false); }
     }
 
     function aplicarPermissoesUI() {
-        // Show/Hide Tabs based on permissions
-        const toggleTab = (id, key) => document.getElementById(id).classList.toggle('hidden-tab', !hasPerm('read', key));
-        toggleTab('nav-fleet', 'fleet');
-        toggleTab('nav-people', 'people');
-        toggleTab('nav-users', 'users');
-        toggleTab('nav-locs', 'locs');
+        // TABS - Show if user has read access to module in AT LEAST ONE location
+        const hasAny = (mod) => allLocations.some(l => hasPerm('read', mod, l.name));
+        
+        document.getElementById('nav-fleet').classList.toggle('hidden-tab', !hasAny('fleet'));
+        document.getElementById('nav-people').classList.toggle('hidden-tab', !hasAny('people'));
+        
+        // Globals
+        document.getElementById('nav-users').classList.toggle('hidden-tab', !hasPerm('read', 'users', ''));
+        document.getElementById('nav-locs').classList.toggle('hidden-tab', !hasPerm('read', 'locs', ''));
         
         // Dashboard Write Access
-        const canWriteLoc = hasPerm('write', activeLocation);
+        const canWriteLoc = hasPerm('write', 'bookings', activeLocation);
         document.getElementById('card-booking-form').style.display = canWriteLoc ? 'block' : 'none';
         document.getElementById('msg-read-only').style.display = canWriteLoc ? 'none' : 'block';
 
         // Add Buttons Logic
-        const btnFleet = document.getElementById('btn-add-fleet'); if(btnFleet) btnFleet.style.display = hasPerm('write', 'fleet') ? 'block' : 'none';
-        const btnPeople = document.getElementById('btn_save_person'); if(btnPeople) btnPeople.style.display = hasPerm('write', 'people') ? 'block' : 'none';
+        const btnFleet = document.getElementById('btn-add-fleet'); if(btnFleet) btnFleet.style.display = hasPerm('write', 'fleet', activeLocation) ? 'block' : 'none';
+        const btnPeople = document.getElementById('btn_save_person'); if(btnPeople) btnPeople.style.display = hasPerm('write', 'people', activeLocation) ? 'block' : 'none';
         
         nav('dash');
     }
@@ -447,7 +468,8 @@
         container.innerHTML = '';
         container.style.display = 'flex';
         
-        const allowed = allLocations.filter(l => hasPerm('read', l.name));
+        // Show locations where user has dashboard read access
+        const allowed = allLocations.filter(l => hasPerm('read', 'bookings', l.name));
         if(allowed.length === 0) { container.innerHTML = '<div style="padding:10px">Sem acesso a locais.</div>'; return; }
 
         allowed.forEach(loc => {
@@ -481,13 +503,13 @@
             staticPlate: x.static_plate, staticModel: x.static_model
         }));
 
-        if (hasPerm('read', 'users')) {
+        if (hasPerm('read', 'users', '')) {
             const u = await clientDB.from('app_users').select('*');
             if(u.data) appUsers = u.data; renderUsersList();
         }
 
         populateLocationSelects();
-        updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList(); renderPermGridLocs();
+        updateSelects(); renderTimeline(); renderList(); renderFleet(); renderPeople(); renderLocsList(); renderPermMatrix();
         setDefaultDates();
     }
 
@@ -506,31 +528,82 @@
         if(id === 'dash') renderTimeline();
     }
 
-    // --- USER MANAGEMENT WITH PERMISSIONS ---
-    function renderPermGridLocs() {
-        const container = document.getElementById('perm-locs-rows'); container.innerHTML = '';
+    // --- MATRIX RENDERING ---
+    function renderPermMatrix() {
+        const table = document.getElementById('perm-matrix-table');
+        if(!table) return;
+        table.innerHTML = '';
+
+        // Header Row
+        let hRow = `<tr><th>Módulo</th>`;
         allLocations.forEach(l => {
-            container.innerHTML += `<div class="perm-row" data-key="${l.name}"><div class="perm-label">${l.name}</div><div class="perm-check"><input type="checkbox" class="chk-r"></div><div class="perm-check"><input type="checkbox" class="chk-w"></div></div>`;
+            hRow += `<th>${l.name}</th>`;
+        });
+        hRow += `</tr>`;
+        table.innerHTML = hRow;
+
+        // Modules
+        const modules = [
+            { key: 'bookings', label: 'Dashboard' },
+            { key: 'fleet', label: 'Viaturas' },
+            { key: 'people', label: 'Pessoas' }
+        ];
+
+        modules.forEach(mod => {
+            let row = `<tr><td>${mod.label}</td>`;
+            allLocations.forEach(l => {
+                const idBase = `chk_${l.name}_${mod.key}`;
+                row += `<td>
+                    <div class="perm-check-group">
+                        <span class="perm-toggle perm-toggle-r" id="${idBase}_r" onclick="togglePerm(this)" title="Ver">👁️</span>
+                        <span class="perm-toggle perm-toggle-w" id="${idBase}_w" onclick="togglePerm(this)" title="Editar">✏️</span>
+                    </div>
+                </td>`;
+            });
+            row += `</tr>`;
+            table.innerHTML += row;
         });
     }
 
+    function togglePerm(el) {
+        if(el.classList.contains('active')) {
+            el.classList.remove('active');
+        } else {
+            el.classList.add('active');
+            // If Write clicked, auto-click Read
+            if(el.classList.contains('perm-toggle-w')) {
+                const readId = el.id.replace('_w', '_r');
+                const readEl = document.getElementById(readId);
+                if(readEl) readEl.classList.add('active');
+            }
+        }
+    }
+
     async function saveUser() {
-        if(!hasPerm('write', 'users')) return alert("Sem permissão.");
+        if(!hasPerm('write', 'users', '')) return alert("Sem permissão.");
         const id = document.getElementById('u_id_edit').value;
         const u = document.getElementById('new_u_name').value;
         const p = document.getElementById('new_u_pass').value;
-        const r = document.getElementById('new_u_role').value; // Apenas informativo agora
+        const r = document.getElementById('new_u_role').value;
         const l = document.getElementById('new_u_loc').value;
         
-        // Build Permission JSON
+        // BUILD PERMISSION JSON
         let permObj = {};
-        document.querySelectorAll('.perm-row').forEach(row => {
-            const key = row.getAttribute('data-key');
-            const rChk = row.querySelector('.chk-r').checked;
-            const wChk = row.querySelector('.chk-w').checked;
-            if(wChk) permObj[key] = 'rw';
-            else if(rChk) permObj[key] = 'r';
+        
+        // Matrix
+        allLocations.forEach(loc => {
+            ['bookings','fleet','people'].forEach(mod => {
+                const rActive = document.getElementById(`chk_${loc.name}_${mod}_r`).classList.contains('active');
+                const wActive = document.getElementById(`chk_${loc.name}_${mod}_w`).classList.contains('active');
+                
+                if(wActive) permObj[`${loc.name}_${mod}`] = 'rw';
+                else if(rActive) permObj[`${loc.name}_${mod}`] = 'r';
+            });
         });
+
+        // Globals
+        if(document.getElementById('gp_users').classList.contains('active')) permObj['users'] = 'rw';
+        if(document.getElementById('gp_locs').classList.contains('active')) permObj['locs'] = 'rw';
 
         showLoader(true);
         const payload = { username: u, role: r, location: l, permissions: permObj, updated_by: currentUser.username };
@@ -546,18 +619,31 @@
 
     function editUser(id) {
         const user = appUsers.find(x => x.id == id); if (!user) return;
+        resetUserForm();
         document.getElementById('u_id_edit').value = user.id; document.getElementById('new_u_name').value = user.username;
         document.getElementById('new_u_pass').placeholder = "Deixe vazio para manter";
         document.getElementById('new_u_role').value = user.role; document.getElementById('new_u_loc').value = user.location;
         
         // Load Permissions
-        const p = user.permissions || {};
-        document.querySelectorAll('.perm-row').forEach(row => {
-            const key = row.getAttribute('data-key');
-            const val = p[key];
-            row.querySelector('.chk-r').checked = (val === 'r' || val === 'rw');
-            row.querySelector('.chk-w').checked = (val === 'rw');
-        });
+        const perms = user.permissions || {};
+        
+        if(perms.all) {
+            // Se for super admin antigo, ativar tudo visualmente
+            document.querySelectorAll('.perm-toggle').forEach(el => el.classList.add('active'));
+        } else {
+            // Matrix
+            allLocations.forEach(loc => {
+                ['bookings','fleet','people'].forEach(mod => {
+                    const key = `${loc.name}_${mod}`;
+                    const val = perms[key];
+                    if(val === 'r' || val === 'rw') document.getElementById(`chk_${loc.name}_${mod}_r`).classList.add('active');
+                    if(val === 'rw') document.getElementById(`chk_${loc.name}_${mod}_w`).classList.add('active');
+                });
+            });
+            // Globals
+            if(perms['users'] === 'rw') document.getElementById('gp_users').classList.add('active');
+            if(perms['locs'] === 'rw') document.getElementById('gp_locs').classList.add('active');
+        }
 
         document.getElementById('btn_save_user').innerText = "Atualizar User";
         document.getElementById('btn_cancel_user').classList.remove('hidden');
@@ -567,13 +653,13 @@
         document.getElementById('u_id_edit').value = ''; document.getElementById('new_u_name').value = '';
         document.getElementById('new_u_pass').value = ''; document.getElementById('new_u_pass').placeholder = "Senha";
         document.getElementById('btn_save_user').innerText = "Criar Utilizador"; document.getElementById('btn_cancel_user').classList.add('hidden');
-        document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+        document.querySelectorAll('.perm-toggle').forEach(el => el.classList.remove('active'));
     }
 
     function renderUsersList() { 
         const t=document.getElementById('users_list'); if(t) { t.innerHTML=''; 
         appUsers.forEach(u => { 
-            let delBtn = hasPerm('write','users') ? `<button onclick="delRec('app_users',${u.id})" class="action-btn">✕</button>` : '';
+            let delBtn = hasPerm('write','users','') ? `<button onclick="delRec('app_users',${u.id})" class="action-btn">✕</button>` : '';
             t.innerHTML+=`<tr><td>${u.username}</td><td>${u.role}</td><td>${u.location||'-'}</td><td style="text-align:right"><button onclick="editUser(${u.id})" class="action-btn">✏️</button>${delBtn}</td></tr>`; 
         }); } 
     }
@@ -600,7 +686,7 @@
     function formatDateForInput(iso) { if(!iso)return ''; const d=new Date(iso); if(isNaN(d))return ''; return new Date(d.getTime()-(d.getTimezoneOffset()*60000)).toISOString().slice(0,16); }
 
     async function saveBooking() {
-        if(!hasPerm('write', activeLocation)) return alert("Sem permissão de escrita neste local.");
+        if(!hasPerm('write', 'bookings', activeLocation)) return alert("Sem permissão de escrita neste local.");
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
         const type = getVal('inp_type'), start = getVal('inp_start'), end = getVal('inp_end');
         if(!end) return alert("Fim obrigatório.");
@@ -626,7 +712,7 @@
     }
 
     function editBooking(id) {
-        if(!hasPerm('write', activeLocation)) return alert("Modo leitura.");
+        if(!hasPerm('write', 'bookings', activeLocation)) return alert("Modo leitura.");
         const b = bookings.find(x => String(x.id) === String(id)); if(!b) return;
         nav('dash');
         document.getElementById('booking_id').value = b.id;
@@ -671,7 +757,7 @@
                 let s = new Date(b.start), e = new Date(b.end);
                 let left = ((s - start) / msDay) * zoomLevel, width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
-                let click = hasPerm('write', activeLocation) ? `onclick="editBooking(${b.id})"` : '';
+                let click = hasPerm('write', 'bookings', activeLocation) ? `onclick="editBooking(${b.id})"` : '';
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${b.userName}"><span class="gantt-bar-label">${b.userName}</span></div>`;
             });
             body.innerHTML += row + `</div></div>`;
@@ -683,7 +769,7 @@
         const txt = document.getElementById('filter_text').value.toLowerCase();
         
         let filtered = bookings.filter(b => {
-            if(b.location !== activeLocation && !hasPerm('read', 'all')) return false;
+            if(!hasPerm('read', 'bookings', b.location)) return false;
             let plate = b.staticPlate || (fleet.find(f=>f.id==b.vehicleId)||{}).plate || '';
             return (plate+b.userName+b.clientName).toLowerCase().includes(txt);
         });
@@ -692,8 +778,8 @@
 
         filtered.forEach(b => {
             let plate = b.staticPlate || (fleet.find(f=>f.id==b.vehicleId)||{}).plate || '?';
-            let del = hasPerm('write', b.location) ? `<button class="action-btn" style="color:red" onclick="delRec('bookings',${b.id})">✕</button>` : '';
-            let edit = hasPerm('write', b.location) ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
+            let del = hasPerm('write', 'bookings', b.location) ? `<button class="action-btn" style="color:red" onclick="delRec('bookings',${b.id})">✕</button>` : '';
+            let edit = hasPerm('write', 'bookings', b.location) ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
             let obs = b.notes ? `<div class="obs-note">📝 ${b.notes}</div>` : '';
             tb.innerHTML += `<tr><td>${b.location}</td><td>${plate}</td><td>${b.userName} ${obs}</td><td><span class="badge" style="background:${colors[b.type]}">${b.type}</span></td><td><small>${new Date(b.start).toLocaleString()}</small></td><td>${edit} ${del}</td></tr>`;
         });
@@ -701,7 +787,7 @@
 
     // --- OTHER CRUD ---
     async function saveFleet() { 
-        if(!hasPerm('write','fleet')) return; 
+        if(!hasPerm('write','fleet', activeLocation)) return; 
         const n=document.getElementById('f_name').value, p=document.getElementById('f_plate').value, l=document.getElementById('f_loc').value; 
         if(n&&p){ showLoader(true); await clientDB.from('fleet').insert({name:n,plate:p,location:l, updated_by:currentUser.username}); await refreshData(); showLoader(false); }
     }
@@ -711,7 +797,7 @@
         ta.innerHTML=''; tar.innerHTML=''; let archCount = 0;
         
         fleet.filter(c => c.location === activeLocation).forEach(c => {
-            const btn = hasPerm('write','fleet') ? `<button onclick="toggleActive('fleet',${c.id}, ${c.active!==false})" class="action-btn">${c.active!==false?'📂':'♻️'}</button>` : '';
+            const btn = hasPerm('write','fleet', activeLocation) ? `<button onclick="toggleActive('fleet',${c.id}, ${c.active!==false})" class="action-btn">${c.active!==false?'📂':'♻️'}</button>` : '';
             if(c.active !== false) ta.innerHTML+=`<tr><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td>${btn}</td></tr>`;
             else { archCount++; tar.innerHTML+=`<tr class="archived-row"><td>${c.location}</td><td>${c.name}</td><td>${c.plate}</td><td>${btn}</td></tr>`; }
         });
@@ -721,8 +807,9 @@
     }
 
     async function savePeople() {
-        if(!hasPerm('write','people')) return;
-        const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, l=document.getElementById('p_loc').value, id=document.getElementById('p_id_edit').value;
+        const l = document.getElementById('p_loc').value;
+        if(!hasPerm('write','people', l)) return alert("Sem permissão para " + l);
+        const n=document.getElementById('p_name').value, r=document.getElementById('p_role').value, id=document.getElementById('p_id_edit').value;
         if(n) { showLoader(true); const pl = {name:n,role:r,location:l,updated_by:currentUser.username}; 
         if(id) await clientDB.from('people').update(pl).eq('id',id); else await clientDB.from('people').insert(pl);
         await refreshData(); resetPeopleForm(); showLoader(false); }
@@ -731,7 +818,7 @@
     function renderPeople() {
         const t = document.getElementById('people_body'); if(!t) return; t.innerHTML = '';
         people.filter(p => p.location === activeLocation && p.active !== false).forEach(p => {
-            const btns = hasPerm('write', 'people') ?
+            const btns = hasPerm('write', 'people', activeLocation) ?
                 `<button onclick="editPerson(${p.id})" class="action-btn">✏️</button>
                  <button onclick="toggleActive('people',${p.id}, true)" class="action-btn">🗑️</button>` : '';
             t.innerHTML += `<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right">${btns}</td></tr>`;
@@ -739,7 +826,8 @@
     }
 
     async function toggleActive(table, id, status) {
-        if(!hasPerm('write', table==='fleet'?'fleet':'people')) return alert("Sem permissão.");
+        // Simple check: user needs write permission on 'fleet' or 'people' in current location
+        if(!hasPerm('write', table==='fleet'?'fleet':'people', activeLocation)) return alert("Sem permissão.");
         if(confirm("Alterar estado?")) { await clientDB.from(table).update({active:!status}).eq('id',id); await refreshData(); }
     }
 
@@ -750,8 +838,8 @@
 
     function sortFeed(col) { sortState={col:col, dir:sortState.dir==='asc'?'desc':'asc'}; renderList(); }
     async function delRec(t,id) { if(confirm("Apagar?")) { await clientDB.from(t).delete().eq('id',id); await refreshData(); } }
-    async function addLocation() { if(!hasPerm('write','locs'))return; const n=document.getElementById('new_loc_name').value; if(n){await clientDB.from('locations').insert({name:n}); await refreshData();} }
-    function renderLocsList() { const t=document.getElementById('locs_list'); t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td>${hasPerm('write','locs')?`<button onclick="delRec('locations',${l.id})" class="action-btn">✕</button>`:''}</td></tr>`); }
+    async function addLocation() { if(!hasPerm('write','locs',''))return; const n=document.getElementById('new_loc_name').value; if(n){await clientDB.from('locations').insert({name:n}); await refreshData();} }
+    function renderLocsList() { const t=document.getElementById('locs_list'); t.innerHTML=''; allLocations.forEach(l=>t.innerHTML+=`<tr><td>${l.id}</td><td>${l.name}</td><td>${hasPerm('write','locs','')?`<button onclick="delRec('locations',${l.id})" class="action-btn">✕</button>`:''}</td></tr>`); }
     function shiftTime(d) { currentDate.setDate(currentDate.getDate()+d); renderTimeline(); }
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
