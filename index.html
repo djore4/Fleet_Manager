@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v59 (Sort & Extra Data)</title>
+    <title>FleetWise Pro - v60 (Sticky & Grey)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -16,6 +16,12 @@
             --weekend: #F2F4F7; --now-line: #DC3545;
             --gaia-color: #6f42c1; --porto-color: #007bff;
             --archived: #adb5bd;
+            
+            /* Cores de Estado */
+            --c-test: #28a745;
+            --c-loan: #17a2b8;
+            --c-serv: #6c757d; /* AGORA CINZENTO */
+            --c-unav: #dc3545;
         }
 
         * { box-sizing: border-box; font-family: "Inter", sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -88,8 +94,31 @@
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         
-        .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; display: block; line-height: 36px; overflow: hidden; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
-        .gantt-bar-label { position: sticky; left: 5px; padding: 0 8px; white-space: nowrap; display: inline-block; }
+        /* BARRA DO GANTT COM TEXTO FLUTUANTE (STICKY) */
+        .gantt-bar { 
+            position: absolute; 
+            height: 36px; top: 12px; 
+            border-radius: 4px; 
+            color: white; 
+            /* Flexbox permite alinhar o sticky child */
+            display: flex; 
+            align-items: center; 
+            overflow: hidden; 
+            cursor: pointer; 
+            z-index: 5; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+            font-weight: 600; 
+        }
+        
+        .gantt-bar-label { 
+            position: sticky; 
+            left: 0px; /* Cola-se à esquerda do contentor de scroll */
+            padding-left: 8px; 
+            padding-right: 8px;
+            white-space: nowrap; 
+            display: inline-block;
+        }
+
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LEGENDA */
@@ -141,8 +170,8 @@
             .gantt-header { height: 40px; }
             .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
             .gantt-row { height: 45px; } 
-            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; line-height: 28px; }
-            .gantt-bar-label { padding: 0 4px; left: 2px; }
+            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
+            .gantt-bar-label { padding-left: 4px; left: 0px; }
 
             .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
             th, td { padding: 8px; font-size: 0.8rem; }
@@ -242,7 +271,7 @@
             <div class="legend-bar">
                 <span class="legend-item"><span class="color-dot" style="background:#28a745"></span>Test-drive</span>
                 <span class="legend-item"><span class="color-dot" style="background:#17a2b8"></span>Empréstimo</span>
-                <span class="legend-item"><span class="color-dot" style="background:#fd7e14"></span>Serviço</span>
+                <span class="legend-item"><span class="color-dot" style="background:#6c757d"></span>Serviço</span>
                 <span class="legend-item"><span class="color-dot" style="background:#dc3545"></span>Indisponível</span>
             </div>
         </div>
@@ -348,7 +377,8 @@
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
     
-    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#fd7e14', 'Indisponível':'#dc3545' };
+    // CORES ATUALIZADAS (Serviço = Cinzento)
+    const colors = { 'Test-drive':'#28a745', 'Empréstimo':'#17a2b8', 'Serviço':'#6c757d', 'Indisponível':'#dc3545' };
     
     let activeLocation = 'Gaia'; 
     let currentDate = new Date(), zoomLevel = 100;
@@ -444,7 +474,6 @@
             userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
-            // NOVOS CAMPOS
             clientZip: x.client_zip, clientCity: x.client_city, clientLicense: x.client_license,
             staticPlate: x.static_plate, staticModel: x.static_model
         }));
@@ -560,7 +589,6 @@
             client_nif: getVal('inp_client_nif'),
             client_addr: getVal('inp_client_addr'),
             client_bi: getVal('inp_client_bi'),
-            // NOVOS CAMPOS
             client_zip: getVal('inp_client_zip'),
             client_city: getVal('inp_client_city'),
             client_license: getVal('inp_client_license')
@@ -642,7 +670,6 @@
         setVal('inp_client_nif', b.clientNif);
         setVal('inp_client_addr', b.clientAddr);
         setVal('inp_client_bi', b.clientBi);
-        // NOVOS CAMPOS
         setVal('inp_client_zip', b.clientZip);
         setVal('inp_client_city', b.clientCity);
         setVal('inp_client_license', b.clientLicense);
@@ -690,6 +717,7 @@
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
                 let label = b.userName || 'S/ Nome';
                 
+                // STICKY LABEL ATIVO
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label} - ${b.clientName||''}">
                             <span class="gantt-bar-label">${label}</span>
                         </div>`;
@@ -698,7 +726,6 @@
         });
     }
 
-    // --- NOVA FUNÇÃO DE ORDENAÇÃO ---
     function sortFeed(col) {
         if (sortState.col === col) {
             sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
@@ -706,13 +733,10 @@
             sortState.col = col;
             sortState.dir = 'asc';
         }
-        
-        // Atualiza setas visuais
         document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
         const arrow = sortState.dir === 'asc' ? '▲' : '▼';
         const icon = document.getElementById('sort_' + col);
         if(icon) icon.innerText = arrow;
-
         renderList();
     }
 
@@ -725,7 +749,6 @@
         let filtered = bookings.filter(b => {
             if(b.location !== activeLocation && currentUser.role !== 'admin') return false;
             
-            // Helper para dados do carro
             if(!b.staticPlate) {
                 const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
                 b.tempPlate = car.plate; b.tempModel = car.name;
@@ -738,7 +761,6 @@
             return txt.includes(filter);
         });
 
-        // APLICA ORDENAÇÃO
         filtered.sort((a,b) => {
             let valA, valB;
             switch(sortState.col) {
@@ -749,7 +771,6 @@
                 case 'start': valA = new Date(a.start); valB = new Date(b.start); break;
                 default: valA = new Date(a.start); valB = new Date(b.start);
             }
-            
             if (valA < valB) return sortState.dir === 'asc' ? -1 : 1;
             if (valA > valB) return sortState.dir === 'asc' ? 1 : -1;
             return 0;
