@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v63 (Matrix Permissions)</title>
+    <title>FleetWise Pro - v63.1 (Fixed)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -143,6 +143,7 @@
             .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
             .gantt-row { height: 45px; } 
             .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; }
+            .gantt-bar-label { padding-left: 4px; left: 0px; }
             .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
             th, td { padding: 8px; font-size: 0.8rem; }
         }
@@ -725,6 +726,16 @@
         if(n) { showLoader(true); const pl = {name:n,role:r,location:l,updated_by:currentUser.username}; 
         if(id) await clientDB.from('people').update(pl).eq('id',id); else await clientDB.from('people').insert(pl);
         await refreshData(); resetPeopleForm(); showLoader(false); }
+    }
+
+    function renderPeople() {
+        const t = document.getElementById('people_body'); if(!t) return; t.innerHTML = '';
+        people.filter(p => p.location === activeLocation && p.active !== false).forEach(p => {
+            const btns = hasPerm('write', 'people') ?
+                `<button onclick="editPerson(${p.id})" class="action-btn">✏️</button>
+                 <button onclick="toggleActive('people',${p.id}, true)" class="action-btn">🗑️</button>` : '';
+            t.innerHTML += `<tr><td>${p.location}</td><td>${p.name}</td><td>${p.role}</td><td style="text-align:right">${btns}</td></tr>`;
+        });
     }
 
     async function toggleActive(table, id, status) {
