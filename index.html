@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FleetWise Pro - v58 (Sticky Fix)</title>
+    <title>FleetWise Pro - v59 (Sort & Extra Data)</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -74,7 +74,7 @@
         .loc-tab.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
         .dash-loc-indicator { background: #eef9f9; color: var(--primary); padding: 10px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; text-align: center; border: 1px solid #b2dfdb; text-transform: uppercase; letter-spacing: 1px; display: none; }
 
-        /* TIMELINE - COM TEXTO FLUTUANTE (STICKY) */
+        /* TIMELINE - STICKY LABELS */
         .timeline-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: white; min-height: 50vh; position: relative; scrollbar-width: none; -ms-overflow-style: none; }
         .timeline-wrapper::-webkit-scrollbar { display: none; }
         .gantt-header { display: flex; min-width: 100%; border-bottom: 2px solid var(--border); background: #f8f9fa; position: sticky; top: 0; z-index: 20; height: 50px; align-items: center; }
@@ -88,28 +88,8 @@
         .gantt-guide { border-left: 1px solid #f9f9f9; height: 100%; flex-shrink: 0; position: relative; }
         .gantt-guide.month-start { border-left: 2px solid var(--border); } 
         
-        /* BARRA DO GANTT COM TEXTO FLUTUANTE */
-        .gantt-bar { 
-            position: absolute; 
-            height: 36px; top: 12px; 
-            border-radius: 4px; color: white; 
-            display: block; /* Alterado para block para o sticky funcionar */
-            line-height: 36px; /* Alinhamento vertical do texto */
-            overflow: hidden; 
-            cursor: pointer; z-index: 5; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
-            font-weight: 600; 
-        }
-        
-        /* O "Truque" do Texto Fixo */
-        .gantt-bar-label {
-            position: sticky; 
-            left: 5px; /* Cola-se à esquerda do ecrã */
-            padding: 0 8px;
-            white-space: nowrap;
-            display: inline-block;
-        }
-
+        .gantt-bar { position: absolute; height: 36px; top: 12px; border-radius: 4px; color: white; display: block; line-height: 36px; overflow: hidden; cursor: pointer; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; }
+        .gantt-bar-label { position: sticky; left: 5px; padding: 0 8px; white-space: nowrap; display: inline-block; }
         .now-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--now-line); z-index: 50; pointer-events: none; }
 
         /* LEGENDA */
@@ -117,12 +97,18 @@
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; opacity: 0.9; }
 
-        /* LISTS */
+        /* LISTS (FEED) */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid var(--border); }
         .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         th { background: #f8f9fa; font-weight: 700; text-align: left; }
+        
+        /* SORTABLE HEADERS */
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { background-color: #e9ecef; }
+        .sort-icon { display: inline-block; margin-left: 5px; font-size: 0.8rem; color: #999; }
+        
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color:white; font-weight:bold; }
         .client-info { display:block; font-size:0.85rem; color:#555; margin-top:6px; padding-left:10px; border-left:3px solid var(--secondary); background:#f9f9f9; padding:5px; border-radius:0 3px 3px 0; }
         .archived-row { opacity: 0.6; background-color: #f9f9f9; }
@@ -155,7 +141,7 @@
             .gantt-header { height: 40px; }
             .gantt-corner, .gantt-label { width: 85px; min-width: 85px; font-size: 0.7rem; }
             .gantt-row { height: 45px; } 
-            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; line-height: 28px; } /* Ajuste line-height mobile */
+            .gantt-bar { height: 28px; top: 8px; font-size: 0.65rem; line-height: 28px; }
             .gantt-bar-label { padding: 0 4px; left: 2px; }
 
             .filter-bar { flex-direction: column; gap: 8px; padding: 10px; }
@@ -227,6 +213,11 @@
                     <div class="form-col"><label>Morada</label><input id="inp_client_addr"></div>
                     <div class="form-col"><label>CC/BI</label><input id="inp_client_bi"></div>
                 </div>
+                <div class="form-row">
+                    <div class="form-col"><label>Cód. Postal</label><input id="inp_client_zip"></div>
+                    <div class="form-col"><label>Localidade</label><input id="inp_client_city"></div>
+                    <div class="form-col"><label>Carta Condução</label><input id="inp_client_license"></div>
+                </div>
             </div>
 
             <div class="form-row">
@@ -266,7 +257,16 @@
             </div>
             <div class="table-wrap">
                 <table id="table_bookings">
-                    <thead><tr><th>Local</th><th>Viatura</th><th>Responsável / Cliente</th><th>Tipo</th><th>Datas</th><th>Ações</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortFeed('location')">Local <span id="sort_location" class="sort-icon"></span></th>
+                            <th class="sortable" onclick="sortFeed('vehicle')">Viatura <span id="sort_vehicle" class="sort-icon"></span></th>
+                            <th class="sortable" onclick="sortFeed('user')">Responsável / Cliente <span id="sort_user" class="sort-icon"></span></th>
+                            <th class="sortable" onclick="sortFeed('type')">Tipo <span id="sort_type" class="sort-icon"></span></th>
+                            <th class="sortable" onclick="sortFeed('start')">Datas <span id="sort_start" class="sort-icon">▼</span></th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
                     <tbody id="list_body"></tbody>
                 </table>
             </div>
@@ -342,6 +342,9 @@
     let currentUser = null;
     let fleet = [], people = [], bookings = [], appUsers = [], allLocations = [];
     
+    // VARIÁVEL DE ESTADO PARA ORDENAÇÃO
+    let sortState = { col: 'start', dir: 'asc' };
+
     const URL_DB = 'https://qjzjxtxrlofnoyaaypbu.supabase.co';
     const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqemp4dHhybG9mbm95YWF5cGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MzA0OTEsImV4cCI6MjA4MzMwNjQ5MX0.aKEIKjKpGbWJXNgephZV2T1yXpXXGJ0v3HpwHaR7HZE';
     
@@ -441,6 +444,8 @@
             userName:x.user_name,
             type:x.type, start:x.start_time, end:x.end_time, location:x.location,
             clientName:x.client_name, clientPhone:x.client_phone, clientNif:x.client_nif, clientAddr:x.client_addr, clientBi:x.client_bi,
+            // NOVOS CAMPOS
+            clientZip: x.client_zip, clientCity: x.client_city, clientLicense: x.client_license,
             staticPlate: x.static_plate, staticModel: x.static_model
         }));
 
@@ -554,7 +559,11 @@
             client_phone: getVal('inp_client_phone'),
             client_nif: getVal('inp_client_nif'),
             client_addr: getVal('inp_client_addr'),
-            client_bi: getVal('inp_client_bi')
+            client_bi: getVal('inp_client_bi'),
+            // NOVOS CAMPOS
+            client_zip: getVal('inp_client_zip'),
+            client_city: getVal('inp_client_city'),
+            client_license: getVal('inp_client_license')
         };
         
         const idStr = getVal('booking_id');
@@ -584,7 +593,7 @@
     }
 
     function resetForm() {
-        ['booking_id','inp_vehicle','inp_driver','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi'].forEach(i=>{
+        ['booking_id','inp_vehicle','inp_driver','inp_client_name','inp_client_phone','inp_client_nif','inp_client_addr','inp_client_bi','inp_client_zip','inp_client_city','inp_client_license'].forEach(i=>{
             const el = document.getElementById(i); if(el) el.value='';
         });
         document.getElementById('btn_save').innerText = "AGENDAR";
@@ -633,6 +642,10 @@
         setVal('inp_client_nif', b.clientNif);
         setVal('inp_client_addr', b.clientAddr);
         setVal('inp_client_bi', b.clientBi);
+        // NOVOS CAMPOS
+        setVal('inp_client_zip', b.clientZip);
+        setVal('inp_client_city', b.clientCity);
+        setVal('inp_client_license', b.clientLicense);
         
         toggleExtraFields();
         document.getElementById('btn_save').innerText = "ATUALIZAR";
@@ -675,11 +688,8 @@
                 let width = ((e - s) / msDay) * zoomLevel;
                 if(width < 10) width = 10;
                 let click = (currentUser.role !== 'vendedor') ? `onclick="editBooking(${b.id})"` : '';
-                
-                // NOME NA BARRA (SEMPRE O RESPONSÁVEL)
                 let label = b.userName || 'S/ Nome';
                 
-                // NOVO: SPAN com class "gantt-bar-label" que tem position: sticky
                 row += `<div class="gantt-bar" ${click} style="left:${left}px; width:${width}px; background:${colors[b.type]}" title="${label} - ${b.clientName||''}">
                             <span class="gantt-bar-label">${label}</span>
                         </div>`;
@@ -688,41 +698,76 @@
         });
     }
 
+    // --- NOVA FUNÇÃO DE ORDENAÇÃO ---
+    function sortFeed(col) {
+        if (sortState.col === col) {
+            sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+        } else {
+            sortState.col = col;
+            sortState.dir = 'asc';
+        }
+        
+        // Atualiza setas visuais
+        document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
+        const arrow = sortState.dir === 'asc' ? '▲' : '▼';
+        const icon = document.getElementById('sort_' + col);
+        if(icon) icon.innerText = arrow;
+
+        renderList();
+    }
+
     function renderList() {
         const tb = document.getElementById('list_body'); if(!tb) return;
         tb.innerHTML = '';
         const filter = document.getElementById('filter_text').value.toLowerCase();
         const filterType = document.getElementById('filter_type').value;
         
-        bookings.sort((a,b) => new Date(a.start) - new Date(b.start));
-        bookings.forEach(b => {
-            if(b.location !== activeLocation && currentUser.role !== 'admin') return;
-
-            let plate = b.staticPlate;
-            let model = b.staticModel;
+        let filtered = bookings.filter(b => {
+            if(b.location !== activeLocation && currentUser.role !== 'admin') return false;
             
-            if(!plate) {
+            // Helper para dados do carro
+            if(!b.staticPlate) {
                 const car = fleet.find(f => f.id == b.vehicleId) || {name:'?', plate:'?'};
-                plate = car.plate;
-                model = car.name;
+                b.tempPlate = car.plate; b.tempModel = car.name;
+            } else {
+                b.tempPlate = b.staticPlate; b.tempModel = b.staticModel;
             }
 
-            if(filterType && b.type !== filterType) return;
-            const txt = (plate + model + (b.userName||'') + (b.clientName||'')).toLowerCase();
-            if(!txt.includes(filter)) return;
+            if(filterType && b.type !== filterType) return false;
+            const txt = (b.tempPlate + b.tempModel + (b.userName||'') + (b.clientName||'')).toLowerCase();
+            return txt.includes(filter);
+        });
 
+        // APLICA ORDENAÇÃO
+        filtered.sort((a,b) => {
+            let valA, valB;
+            switch(sortState.col) {
+                case 'location': valA = a.location; valB = b.location; break;
+                case 'vehicle': valA = a.tempPlate; valB = b.tempPlate; break;
+                case 'user': valA = a.userName || ''; valB = b.userName || ''; break;
+                case 'type': valA = a.type; valB = b.type; break;
+                case 'start': valA = new Date(a.start); valB = new Date(b.start); break;
+                default: valA = new Date(a.start); valB = new Date(b.start);
+            }
+            
+            if (valA < valB) return sortState.dir === 'asc' ? -1 : 1;
+            if (valA > valB) return sortState.dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        filtered.forEach(b => {
             const date = new Date(b.start).toLocaleString('pt-PT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
             let delBtn = (currentUser.role === 'admin' || currentUser.role === 'genius' || currentUser.role === 'gerente') ? `<button class="action-btn" style="color:red" onclick="delBooking(${b.id})">✕</button>` : '';
             let editBtn = (currentUser.role !== 'vendedor') ? `<button class="action-btn" onclick="editBooking(${b.id})">✏️</button>` : '';
 
             let clientData = '';
             if(b.clientName) {
-                clientData = `<div class="client-info"><b>${b.clientName}</b><br>📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>🏠 ${b.clientAddr || 'Sem morada'}</div>`;
+                clientData = `<div class="client-info"><b>${b.clientName}</b><br>📞 ${b.clientPhone||'-'} | NIF: ${b.clientNif||'-'}<br>🏠 ${b.clientAddr || ''} ${b.clientZip||''} ${b.clientCity||''}</div>`;
             }
 
             tb.innerHTML += `<tr>
                 <td><b>${b.location}</b></td>
-                <td><b>${plate}</b><br><small>${model}</small></td>
+                <td><b>${b.tempPlate}</b><br><small>${b.tempModel}</small></td>
                 <td>${b.userName} ${clientData}</td>
                 <td><span class="badge" style="background:${colors[b.type] || '#999'}">${b.type}</span></td>
                 <td><small>${date}</small></td>
@@ -848,11 +893,11 @@
     function goToday() { currentDate = new Date(); renderTimeline(); }
     function changeZoom(z) { zoomLevel += z; if(zoomLevel<30) zoomLevel=30; renderTimeline(); }
     function exportToExcel() {
-        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada\n";
+        let csv = "Local;Viatura;Responsavel;Tipo;Inicio;Fim;Cliente;Morada;CP;Localidade;CartaCond\n";
         bookings.forEach(b => {
             let plate = b.staticPlate;
             if(!plate) { const car = fleet.find(f => f.id == b.vehicleId) || {name:''}; plate = car.plate; }
-            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''}\n`;
+            csv += `${b.location};${plate};${b.userName};${b.type};${b.start};${b.end};${b.clientName||''};${b.clientAddr||''};${b.clientZip||''};${b.clientCity||''};${b.clientLicense||''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='frota.csv'; a.click();
